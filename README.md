@@ -14,8 +14,8 @@ Hint: Use the graph and plot function in Matlab for visualizing the graph.
 
 e) Generate larger graphs by sampling the following random graph models and test them
 with your implementation.
-– Barabási–Albert model, see https://barabasi.com/f/622.pdf.
-– Stochastic block model, see section 2.1 of [3].
+- Barabási–Albert model, see https://barabasi.com/f/622.pdf.
+- Stochastic block model, see section 2.1 of [3].
 
 ## References
 
