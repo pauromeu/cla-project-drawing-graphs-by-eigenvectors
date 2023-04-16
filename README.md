@@ -1,4 +1,4 @@
-# Drawing Graphs by Eigenvector
+# Drawing Graphs by Eigenvectors
 
 This project focused on spectral graph drawing methods, which construct the layout of a graph using eigenvectors of certain matrices. One possible approach is the force-directed strategy [1], which defines an energy function, with the minimum determining a drawing that is optimal in a certain sense. Another approach using the generalized eigenvectors of the graph Laplacian was proposed in [2].
 
