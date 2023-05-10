@@ -2,7 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-def graph_plot(adj_matrix, x_coord, y_coord, title=None):
+def graph_plot(adj_matrix, x_coord, y_coord, title="Graph"):
     """
     Plot a graph with nodes and edges based on provided adjacency matrix and node coordinates.
 
@@ -52,7 +52,7 @@ def graph_plot(adj_matrix, x_coord, y_coord, title=None):
     # set axis labels and title
     plt.xlabel('X-axis')
     plt.ylabel('Y-axis')
-    plt.title('Graph')
+    plt.title(title)
 
     # set equal scaling for both axes
     plt.axis('equal')
