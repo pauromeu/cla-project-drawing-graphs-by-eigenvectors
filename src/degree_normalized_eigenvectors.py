@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import norm
 
 
-def degree_normalized_eigenvectors(D, A, p, tol=1e-8, max_iter=1000):
+def degree_normalized_eigenvectors(D, A, p, tol=1e-8, max_iter=1000, prints = False):
     """
     Compute the top non-degenerate eigenvectors of the degree-normalized adjacency matrix of a graph.
 
@@ -33,16 +33,16 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-8, max_iter=1000):
 
     """
     n = D.shape[0]
-    U = np.zeros((n, p))
+    U = np.zeros((n, p + 1))
     U[:, 0] = 1.0 / np.sqrt(n)
 
-    for k in range(1, p):
+    for k in range(1, p + 1):
         uk_t = np.random.rand(n)
         uk_t /= norm(uk_t)  # normalization
         uk = np.zeros(n)
         iter_count = 0
 
-        while np.dot(uk_t, uk) < (1 - tol) and iter_count < max_iter:
+        while abs(np.dot(uk_t, uk)) < (1 - tol) and iter_count < max_iter:
             uk = uk_t.copy()
 
             # D-orthogonalize against previous eigenvectors
@@ -63,6 +63,8 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-8, max_iter=1000):
         if iter_count == max_iter:
             print(f"Warning: Convergence not reached for k = {k}")
 
+        if prints: 
+            print("Convergence reached for eigenvector u^",k + 1)
         U[:, k] = uk_t
 
     return U[:, 1:]
