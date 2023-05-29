@@ -29,14 +29,14 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph"):
     pos = {i: (x_coord[i], y_coord[i]) for i in range(len(x_coord))}
 
     # draw nodes and edges
-    node_size = 200
+    node_size = 20
     nx.draw_networkx_nodes(graph, pos, node_color='blue', node_size=node_size)
-    nx.draw_networkx_edges(graph, pos, edge_color='red', width=1)
+    nx.draw_networkx_edges(graph, pos, edge_color='red', width=0.25)
 
     # add text labels to identify each vertex
-    for i in range(len(x_coord)):
-        plt.text(x_coord[i], y_coord[i], str(i+1), ha='center',
-                 va='center', color='white', weight='bold')
+    # for i in range(len(x_coord)):
+    #     plt.text(x_coord[i], y_coord[i], str(i+1), ha='center',
+    #              va='center', color='white', weight='bold')
 
     # add a grey cross at (0,0)
     cross_size = 0.05
