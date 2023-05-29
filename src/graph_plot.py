@@ -2,7 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-def graph_plot(adj_matrix, x_coord, y_coord, title="Graph"):
+def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200):
     """
     Plot a graph with nodes and edges based on provided adjacency matrix and node coordinates.
 
@@ -28,10 +28,12 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph"):
     # create dictionary of node positions using (x, y) coordinates
     pos = {i: (x_coord[i], y_coord[i]) for i in range(len(x_coord))}
 
+    plt.figure(figsize=figsize, dpi=dpi)
+
     # draw nodes and edges
-    node_size = 20
+    node_size = node_size
     nx.draw_networkx_nodes(graph, pos, node_color='blue', node_size=node_size)
-    nx.draw_networkx_edges(graph, pos, edge_color='red', width=0.25)
+    nx.draw_networkx_edges(graph, pos, edge_color='red', width=edge_width)
 
     # add text labels to identify each vertex
     # for i in range(len(x_coord)):
@@ -39,11 +41,12 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph"):
     #              va='center', color='white', weight='bold')
 
     # add a grey cross at (0,0)
-    cross_size = 0.05
-    plt.plot([-cross_size, cross_size], [0, 0], color='grey',
-             linewidth=0.5, markersize=node_size)
-    plt.plot([0, 0], [-cross_size, cross_size], color='grey',
-             linewidth=0.5, markersize=node_size)
+    if cross:
+        cross_size = 0.05
+        plt.plot([-cross_size, cross_size], [0, 0], color='grey',
+                 linewidth=0.5, markersize=node_size)
+        plt.plot([0, 0], [-cross_size, cross_size], color='grey',
+                 linewidth=0.5, markersize=node_size)
 
     # add labels to edges with weights from adjacency matrix
     # edge_labels = {(i, j): adj_matrix[i][j] for i, j in graph.edges()}
