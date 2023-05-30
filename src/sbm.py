@@ -2,13 +2,16 @@ import numpy as np
 import random as rand
 import graph_class as graph
 
-def sbm_adj_matrix(Theta, B, prints = False):
+def sbm_adj_matrix(Theta, B, prints = True):
     n_nodes = len(Theta[:,0])
     g = []
     for i in range(n_nodes):
         g.append(np.where(Theta[i,:] == 1)[0][0])
     g = np.array(g)
-    if prints: print("node's communities: ", g)
+    if prints: 
+        print("node's communities: ", g)
+        print("B:")
+        print(B)
 
     adj_matrix = np.zeros(shape = (n_nodes, n_nodes))
     for j in range(1, n_nodes + 1):
@@ -23,16 +26,20 @@ def sbm_adj_matrix(Theta, B, prints = False):
             adj_matrix[i - 1,j - 1] = adj_matrix[j - 1,i - 1]
     return adj_matrix
 
-def gen_sbm_graph(alpha, lbda, n_nodes):
+def gen_sbm_graph(alpha, lbda, n_nodes, K):
     G = graph.Graph()
-    G.set_adj_matrix(example22(alpha,lbda,n_nodes))   
+    G.set_adj_matrix(example22(alpha,lbda,n_nodes, K))   
     return G 
 
-def example22(alpha, lbda, n_nodes, prints = False):
-    all_ones = np.array([np.ones(n_nodes)]).T # To create column vectors that can be interpreted as matrices...
-    B0 = lbda * np.eye(n_nodes) + (1 - lbda) * (all_ones@all_ones.T)
+def example22(alpha, lbda, n_nodes,K, prints = False):
+    all_ones = np.array([np.ones(K)]).T # To create column vectors that can be interpreted as matrices...
+    B0 = lbda * np.eye(K) + (1 - lbda) * (all_ones@all_ones.T)
     B = alpha * B0
-    Theta = np.eye(n_nodes)
+    Theta = np.zeros(shape=(n_nodes, K))
+    print(Theta)
+    for i in range(n_nodes):
+        Theta[i,np.random.randint(0,K - 1)] = 1
+    print(Theta) 
     if prints: 
         print(Theta)
         print(alpha * Theta)

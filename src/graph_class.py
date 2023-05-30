@@ -3,6 +3,9 @@ from queue import Queue
 from collections import deque
 
 def bfs_shortest_path_distances(adj_list, start_node):
+    """Simple function to compute shortest path distances from start_node to all other nodes in the graph, 
+    which is given via an adjacency list adj_list, using Breadth First Search.
+    """
     # Number of vertices in the graph
     n = len(adj_list)
     
@@ -33,83 +36,25 @@ def bfs_shortest_path_distances(adj_list, start_node):
                 queue.append(adjacent_node)
                 distance[adjacent_node] = distance[current_node] + 1
     
-   #print(distance)
     np_distances = np.zeros(n)
     for node, dist in distance.items():
         np_distances[node] = dist
-    # print(np_distances)
+
     return np_distances
 
-def bfs_shortest_distance(graph, start_node, target_node, prints = False):
-    if prints: print("Computing shortest distance between nodes: ", start_node, " -> ", target_node)
-    snode = start_node
-    tnode = target_node
-    visited = set()  # Set to keep track of visited nodes
-    queue = Queue()  # Queue to store nodes for traversal
-    distances = {start_node: 0}  # Dictionary to store distances from start node
-
-    # Add the start node to the queue and mark it as visited
-    queue.put(start_node)
-    visited.add(start_node)
-
-    while not queue.empty():
-        current_node = queue.get()
-
-        if current_node == target_node:
-            if prints: print("Shortest distance ", snode, ", ", tnode, " = ", distances[current_node])
-            return distances[current_node]  # Return the shortest distance if target node is found
-
-        # Explore neighbors of the current node
-        if prints: print("current node is: ", current_node)
-        neighbors = graph[current_node]
-        for neighbor in neighbors:
-            if neighbor not in visited:
-                queue.put(neighbor)
-                visited.add(neighbor)
-                distances[neighbor] = distances[current_node] + 1  # Update the distance to the neighbor
-
-    return float('inf')  # Return infinity if there is no path between the start and target nodes
-
-
-def breadth_first_search(adj_list, start_node):
-    # Number of vertices in the graph
-    n = len(adj_list)
-    
-    # List to keep track of visited nodes
-    visited = [False] * n
-    
-    # Queue to store the nodes to visit
-    queue = deque()
-    
-    # Mark the start node as visited and enqueue it
-    visited[start_node] = True
-    queue.append(start_node)
-    
-    # Perform BFS
-    while queue:
-        # Dequeue a node from the front of the queue
-        current_node = queue.popleft()
-        # print(current_node)  # You can replace this line with your desired processing of the node
-        
-        # Visit all adjacent nodes of the current node
-        for adjacent_node in adj_list[current_node]:
-            # If the adjacent node hasn't been visited, mark it as visited and enqueue it
-            if not visited[adjacent_node]:
-                visited[adjacent_node] = True
-                queue.append(adjacent_node)
-
 class Graph:
+    """Graph class. Its attributes are:
+    adj_list: adjacency list for all the nodes in the graph.
+    n_nodes, n_edges: number of nodes and edges, respectively.
+    adj_matrix: adjacency matrix of the graph.
+    laplacian: laplacian matrix of the graph. 
+    degs: array of degrees of the graph.
+    """
     def bfs_distances(self, start_node):
         return bfs_shortest_path_distances(self.adj_list, start_node)
     
     def vec_bfs_distances(self, start_node_list):
         return np.vectorize(Graph.bfs_distances)(start_node_list)
-    
-    def bfs_distance(self, start_node, target_node):
-        return bfs_shortest_distance(self.adj_list, start_node, target_node)
-    
-    def vec_bfs_distance(self, start_node_list, target_node_list):
-        return np.vectorize(Graph.bfs_distance)(start_node_list, target_node_list)
 
     def get_nodes_edges_from_file(chaco_file):
         # get number of nodes and edges from chaco file first line
@@ -216,9 +161,9 @@ class Graph:
 # for i in range(len(adj_list)):
 #     print("Dist(", j, ",", i,") = ", shortest_distances[i])
 
-v1 = np.array([1,2,3,4])
-v2 = np.array([1,-1,1,-1])
+# v1 = np.array([1,2,3,4])
+# v2 = np.array([1,-1,1,-1])
 
-print(v1*v2)
+# print(v1*v2)
  
 

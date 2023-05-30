@@ -40,55 +40,111 @@ def gershgorin_bound(A, test = False):
        assert(mu >= np.abs(max_eigvalue) and "Gershgorin bound not bounding max. eig. value for A!")
     return np.max(vec)
 
-def power_method(A, p = 2, tol = 1e-8, max_iters = 1000, prints = False, test = False):
+def test_power_method(A, U, p):
+    """ Tests power method results using SVD decomposition
+
+    Args:
+        A: matrix for which power method has been applied
+        U: results of power method
+        p: number of eigenvectors retrieved using power method
+    """
+    u, s, vt = np.linalg.svd(A)
+    print("Test results: ")
+    print("SVD decomposition of matrix A = ")
+    print(A)
+    print(":")
+    print("u = ", u)
+    print("s = ", s)
+    print("vt = ", vt)
+    print("First ", p, " dominant eigenvectors: ")
+    print(u[:,:p])
+    print("Power method results: ")
+    print(U)
+    print("Quotients power method / SVD: ")
+    for j in range(p):
+        print("Dominant eigenvalue ", j + 1)
+        print("PM results: ", rayleigh_quotient(A,U[:,j]))
+        print("SVD results  : ", rayleigh_quotient(A,u[:,j]))
+        if j != p - 1: print("\n")
+
+
+def stopping_criteria_pm(x, xprev, A, tol, iters, mode = 0):
+    """Computes residual for different stopping criteria for the power method
+    """
+    if iters != 0:
+        residual = 0
+        if mode == 0:
+            residual = 1. - np.dot(x, xprev)
+        elif mode == 1: # computing the residual
+            residual = norm(A@x - rayleigh_quotient(A,x)*x)
+        return residual
+    else:
+        return 99999
+
+def power_method(A, p = 2, tol = 1e-8, max_iters = 1000, prints = False, test = False, mode = 0):
+    """ Basic implementation of power method to find the first p dominant eigenvectors of matrix A
+
+    Args:
+        A: matrix for which we want to compute the first p dominant eigenvectors
+        p (int, optional): Defaults to 2.
+        tol (_type_, optional): tolerance for the stopping criteria of the power method. Defaults to 1e-8.
+        max_iters (int, optional): maximum number of iterations. Defaults to 1000.
+        prints (bool, optional): if True provides useful prints for debugging. Defaults to False.
+        test (bool, optional): if True, tests immediately the results of the power method comparing with SVD results. Defaults to False.
+        mode: residual mode (see stopping_criteria_pm function for more info.). Defaults to 0.
+    
+    Returns:
+        U: n x p matrix containing the first p dominant eigenvectors of matrix A
+    """
     n = len(A[0,:])
     U = np.zeros(shape = (n,p))
     if prints: print(U)
     for k in range(p):
-        print("Computing eigenvector ", k, "...")
+        print("Computing dominant eigenvector ", k + 1, "...")
+        # Set initial 
         uk_t = np.random.normal(0,1,n)
         uk_t /= norm(uk_t)  # normalization
         iters = 0
         uk = np.zeros(n)
-        while np.linalg.norm(uk_t - uk) > tol and iters < max_iters:
+        residual = stopping_criteria_pm(uk, uk_t, A, tol, iters, mode = mode)
+        while residual > tol and iters < max_iters:
             uk = uk_t.copy()
             # orthogonalize against previous eigenvectors
             if k > 0:
                 for l in range(k):
-                    uk = uk - np.dot(uk, U[:,l]) / (np.linalg.norm(U[:,l])**2) * U[:,l]
-            
+                    ul = U[:,l]
+                    uk = uk - np.dot(uk, ul) / (np.dot(ul,ul)) * ul
             # multiply by A
             uk_t = A@uk
-            
             # normalize
-            uk_t = uk_t / np.linalg.norm(uk_t)
+            uk_t = uk_t / norm(uk_t)
             iters += 1
         
         # save eigenvector
         U[:,k] = uk_t
         
     if test:
-        u, s, vt = np.linalg.svd(A)
-        print("Test results: ")
-        print("SVD decomposition of matrix A = ")
-        print(A)
-        print(":")
-        print("u = ", u)
-        print("s = ", s)
-        print("vt = ", vt)
-        print("First ", p, " dominant eigenvectors: ")
-        print(u[:,:p])
-        print("Power method results: ")
-        print(U)
-        print("Quotients power method / SVD: ")
-        for j in range(p):
-            print("Dominant eigenvalue ", j + 1)
-            print("PM results: ", rayleigh_quotient(A,U[:,j]))
-            print("SVD results  : ", rayleigh_quotient(A,u[:,j]))
-            if j != p - 1: print("\n")
+        test_power_method(A, U, p)
+        
     return U
 
 def hde_matrix(L, X, use_sparse = True, use_gershgorin = False, test_gershgorin = False):
+    """Computes matrix from which the eigenvectors for the p-dimensional layout should be extracted.
+    In the reference [2] this matrix is just mu * In - X^T L X, where X represents the high-dimensional
+    embedding of the graph. mu in the previous expression should be a bound on max_i |lambda_i|, where 
+    lambda_i are the eigenvalues of X^T L X. This bound can be computed using the so-called Gershgorin
+    bound, or by using the power-method on X^T L X to get the dominant eigenvalue.
+
+    Args:
+        L: the laplacian of the graph
+        X: the matrix encoding the high-dimensional embedding
+        use_sparse (bool, optional): if True, exploits the sparsity of L to compute the product LX. Defaults to True.
+        use_gershgorin (bool, optional): if True, we set mu equal to the Gershgorin bound for X^T L X. Defaults to False.
+        test_gershgorin (bool, optional): if True, tests if the Gershgorin bound actually bounds the dominant eigenvector of X^T L X. Defaults to False.
+
+    Returns:
+        B: matrix mu * In - X^T L X
+    """
     if use_sparse:
         L_sparse = csr_matrix(L)
         LX = L_sparse @ X
@@ -106,20 +162,6 @@ def hde_matrix(L, X, use_sparse = True, use_gershgorin = False, test_gershgorin 
         mu = np.abs(rayleigh_quotient(XLX, V[:,0])) * (1 + epsilon)
     B = 0.5 * (np.eye(m) -  XLX / mu)
     return B
-
-# Test power method
-b = random.uniform(0.31, 1.99)
-d = [-2, b, 0.3, 0.2, 0.1]
-V = ortho_group.rvs(dim = 5)
-A = V@np.diag(d)@V.T
-p = 2
-U = power_method(A,p, test = True)
-print("\n")
-# for j in range(p):
-#     print("Dominant eigenvalue ", j + 1)
-#     print("Eigenvalue results: ", A@U[:,j] / U[:,j])
-#     print("Expected results  : ", A@V[:,j] / V[:,j])
-#     if j != p - 1: print("\n")
 
 # # Test hde matrix
 # pwd = "/Users/guifre/cla_project/cla-project-drawing-graphs-by-eigenvectors"
@@ -148,7 +190,7 @@ print("\n")
 
 
 
-def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = False, prints = False):
+def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = True, prints = False):
     """
     Compute the top non-degenerate eigenvectors of the degree-normalized adjacency matrix of a graph.
 
@@ -212,7 +254,7 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Fa
                     uk_t[i] = 0.5 * (uk[i] + neig / D[i, i])
             else:
                 if prints: print("computing with matrix multiplication")
-                uk_t = 0.5 * (uk + (A @ uk) * D_inv_diag)
+                uk_t = 0.5 * (uk + D_inv_diag * (A @ uk))
             t_matmul_1 = time.time()
             # uk_t = 0.5 * (uk + (A @ uk) * D_inv.diagonal()) # vectorized version
 
