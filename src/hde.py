@@ -32,6 +32,7 @@ def bfs_shortest_distance(graph, start_node, target_node):
 
     return float('inf')  # Return infinity if there is no path between the start and target nodes
                 
+max_dist = 999999999
 
 def hde(G: Graph, m: int, prints = False, D_orth = True):
     """ Finds m-dimensional high-dimensional embedding of the graph G
@@ -43,10 +44,9 @@ def hde(G: Graph, m: int, prints = False, D_orth = True):
     n = G.n_nodes
     p = np.zeros(m)
     X = np.zeros(shape = (n,  m))
-    d = np.zeros(n)
-    d[:] = float('inf')
+    d = np.full(n, max_dist)
     # Choose first pivot node at random
-    p[0] = rand.randint(0,n - 1)
+    p[0] = rand.randint(0,n - 1) # includes both extrems when computing random integer
     # print(p[0], n)
     adj_list = G.chaco_array
     # test_vec =  np.array(np.vectorize(G.bfs_distance)([1, 2, 3, 4, 5, 6],[120, 12, 34, 30, 1, 114]))
@@ -54,6 +54,8 @@ def hde(G: Graph, m: int, prints = False, D_orth = True):
     # print(test_vec)
     # print(np.minimum(d[:6],test_vec))
     for i in range(m):
+        if i > 0 and p[i] == p[i - 1] and 0:
+            p[i] = rand.randint(0,n - 1)
         if prints: print("Computing X^", i, "...")
         t0 = time.time()
         t1 = time.time()
@@ -62,30 +64,41 @@ def hde(G: Graph, m: int, prints = False, D_orth = True):
         pivot = int(p[i])
         X[:,i] = G.bfs_distances(pivot)
         if prints: print("finished computing bfs distances")
+        # print("X^", i, " : ", X[:,i])
+        # print("d: ", d)
         d = np.minimum(d, X[:,i])
+        # print("d after min.: ", d)
         t1 = time.time()
         if prints: print("time elapsed 2: ", t1 - t0)
         # choose next pivot
         if i + 1 <= m - 1: p[i + 1] = np.argmax(d)
         
-    return gram_schmidt_all_ones(X, D_orth = D_orth)
+    if prints:
+        print("Rank of X before orthonormalize: ", np.linalg.matrix_rank(X))
+        print("p:",p)
+        print("d: ",d)
+        print("X: ")
+        print(X)
+    return gram_schmidt_all_ones(G, X, D_orth = D_orth)
     
-def gram_schmidt_all_ones(U, prints = False, D_orth = True):
+def gram_schmidt_all_ones(G, U, prints = False, D_orth = True):
     # Remains to implement D-orthogonalized version of this... 
     dim = len(U[:,0])
     m = len(U[0,:])
+    degs = G.degs
     u0 = np.full(dim, 1)
-    u0 = u0 / np.sqrt(np.linalg.norm(u0))
+    u0 = u0 / np.sqrt(np.dot(u0, degs* u0))
     U = np.concatenate((u0[:,np.newaxis], U), axis = 1)
     if prints:
         print(U)
         print(np.shape(U))
-    epsilon = 1e-4
+    epsilon = 1e-3
     for i in range(1, m + 1):
         if prints: print(i)
         for j in range(i):
-            U[:,i] = U[:,i] - np.dot(U[:,i],U[:,j]) * U[:,j]
-        norm_ui = np.linalg.norm(U[:,i])
+            U[:,i] = U[:,i] - np.dot(U[:,i],degs * U[:,j]) / (np.dot(U[:,j], degs * U[:,j]))* U[:,j]
+        
+        norm_ui = np.sqrt(np.dot(U[:,i], degs * U[:,i]))
         if norm_ui < epsilon:
             U[:,i] = np.zeros(dim)
         else:

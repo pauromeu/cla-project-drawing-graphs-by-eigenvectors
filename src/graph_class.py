@@ -33,10 +33,11 @@ def bfs_shortest_path_distances(adj_list, start_node):
                 queue.append(adjacent_node)
                 distance[adjacent_node] = distance[current_node] + 1
     
-    np_distances = []
+   #print(distance)
+    np_distances = np.zeros(n)
     for node, dist in distance.items():
-        np_distances.append(dist)
-    np_distances = np.array(np_distances)
+        np_distances[node] = dist
+    # print(np_distances)
     return np_distances
 
 def bfs_shortest_distance(graph, start_node, target_node, prints = False):
@@ -116,6 +117,7 @@ class Graph:
         n_edges = 0
         graph_info = []
         f = chaco_file
+        i = 0
         for word in f.readline().split():
             graph_info.append(int(word))
         n_nodes, n_edges = graph_info[0], graph_info[1]
@@ -126,12 +128,16 @@ class Graph:
         # chaco_array[i] = np array containing indices for nodes that are neighbours with node i.
         chaco_array = []
         f = chaco_file
+        i = 0
         for line in f:
+            if i == 0:
+                print(line)
             nbhs = []
             for word in line.split():
                 nbhs.append(int(word) - 1) # nodes in original chaco file are indexed starting at 1 and not 0
             nbhs = np.array(nbhs)
             chaco_array.append(nbhs)
+            i += 1
         return chaco_array
     
     def set_degs(self, prints = False):
@@ -152,6 +158,16 @@ class Graph:
             self.adj_matrix = None
             self.degs = None
             self.laplacian = None
+    
+    def set_adj_list(self):
+        if self.adj_matrix.all() != None and self.chaco_array == None:
+            self.chaco_array = []
+            for i in range(self.n_nodes):
+                adj_list_node_i = []
+                for j in range(self.n_nodes):
+                    if self.adj_matrix[i,j] == 1:
+                        adj_list_node_i.append(j)
+                self.chaco_array.append(adj_list_node_i)
             
     def set_adj_matrix(self, A):
         self.adj_matrix = A
@@ -173,4 +189,33 @@ class Graph:
     def __str__(self):
         return f"[graph object] nodes = {self.n_nodes}; edges = {self.n_edges}"
     
+    
+
+# # Test shortest path distances
+# adj_list = [
+#   [1],
+#   [0,2],
+#   [1,3,5],
+#   [2,6],
+#   [5,7],
+#   [4,2],
+#   [3],
+#   [4]
+# ]
+
+# # Perform BFS starting from node 0 and get the shortest path distances
+# j = 7
+# print(len(adj_list))
+# shortest_distances = bfs_shortest_path_distances(adj_list, j)
+# print(shortest_distances)
+
+# # Print the shortest path distances
+# for i in range(len(adj_list)):
+#     print("Dist(", j, ",", i,") = ", shortest_distances[i])
+
+v1 = np.array([1,2,3,4])
+v2 = np.array([1,-1,1,-1])
+
+print(v1*v2)
+ 
 
