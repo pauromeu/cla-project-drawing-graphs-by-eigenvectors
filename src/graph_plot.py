@@ -2,7 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200):
+def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200, add_labels=True):
     """
     Plot a graph with nodes and edges based on provided adjacency matrix and node coordinates.
 
@@ -36,9 +36,10 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_wi
     nx.draw_networkx_edges(graph, pos, edge_color='red', width=edge_width)
 
     # add text labels to identify each vertex
-    # for i in range(len(x_coord)):
-    #     plt.text(x_coord[i], y_coord[i], str(i+1), ha='center',
-    #              va='center', color='white', weight='bold')
+    if add_labels:
+        for i in range(len(x_coord)):
+            plt.text(x_coord[i], y_coord[i], str(i+1), ha='center',
+                     va='center', color='black', weight='bold')
 
     # add a grey cross at (0,0)
     if cross:
@@ -48,9 +49,10 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_wi
         plt.plot([0, 0], [-cross_size, cross_size], color='grey',
                  linewidth=0.5, markersize=node_size)
 
-    # add labels to edges with weights from adjacency matrix
-    # edge_labels = {(i, j): adj_matrix[i][j] for i, j in graph.edges()}
-    # nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='black')
+    # if add_labels:
+    #     # add labels to edges with weights from adjacency matrix
+    #     edge_labels = {(i, j): adj_matrix[i][j] for i, j in graph.edges()}
+    #     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='black')
 
     # set axis labels and title
     plt.xlabel('X-axis')
