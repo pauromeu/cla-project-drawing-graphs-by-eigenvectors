@@ -2,7 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from graph_plot import *
 from graph_class import Graph
-from degree_normalized_eigenvectors import *
+from spectral_drawing import *
 
 
 def barabasi_albert_graph(n, m, seed=None):

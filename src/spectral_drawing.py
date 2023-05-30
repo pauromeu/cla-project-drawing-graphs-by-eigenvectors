@@ -6,6 +6,7 @@ from scipy.sparse import csr_matrix
 from graph_class import Graph
 import hde as hde
 import time as time
+from pm import *
 
 def rayleigh_quotient(A, x):
     return np.dot(x,A@x) / np.dot(x,x)
