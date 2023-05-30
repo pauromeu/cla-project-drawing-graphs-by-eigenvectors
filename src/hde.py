@@ -48,7 +48,7 @@ def hde(G: Graph, m: int, prints = False, D_orth = True):
     # Choose first pivot node at random
     p[0] = rand.randint(0,n - 1) # includes both extrems when computing random integer
     # print(p[0], n)
-    adj_list = G.chaco_array
+    adj_list = G.adj_list
     # test_vec =  np.array(np.vectorize(G.bfs_distance)([1, 2, 3, 4, 5, 6],[120, 12, 34, 30, 1, 114]))
     # print("distance", np.vectorize(G.bfs_distance)([1, 2, 3, 4, 5, 6],[120, 12, 34, 30, 1, 114]))
     # print(test_vec)

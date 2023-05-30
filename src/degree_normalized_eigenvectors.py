@@ -147,6 +147,7 @@ print("\n")
 # print(gershogorin_bound(matrix))
 
 
+
 def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = False, prints = False):
     """
     Compute the top non-degenerate eigenvectors of the degree-normalized adjacency matrix of a graph.
