@@ -96,6 +96,12 @@ class Graph:
             self.adj_matrix = Graph.get_adj_matrix_from_chaco_array(self.adj_list)
             Graph.set_degs(self)
             Graph.set_laplacian(self)
+            
+            # Set name of graph as name of file without extension
+            filename = chaco_file.name
+            name_len = len(filename)
+            name = filename[name_len - filename[::-1].find('/'):filename.find('.')]
+            self.name = name
         else:
             self.n_nodes = None
             self.n_edges = None
@@ -103,6 +109,7 @@ class Graph:
             self.adj_matrix = None
             self.degs = None
             self.laplacian = None
+            self.name = None
     
     def set_adj_list(self):
         if self.adj_matrix.all() != None and self.adj_list == None:
@@ -113,7 +120,10 @@ class Graph:
                     if self.adj_matrix[i,j] == 1:
                         adj_list_node_i.append(j)
                 self.adj_list.append(adj_list_node_i)
-            
+                
+    def set_name(self, name: str):
+        self.name = name        
+   
     def set_adj_matrix(self, A):
         self.adj_matrix = A
         self.n_nodes = len(A[0,:])

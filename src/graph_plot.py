@@ -1,8 +1,27 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib
+from graph_class import Graph
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'STIXGeneral'
+matplotlib.rcParams.update({'font.size': 11})
+plt.rcParams['figure.dpi'] = 100
+plt.rcParams['savefig.dpi'] = 300
+plt.rcParams['mathtext.fontset'] = 'cm'
+main_colors = ["r","b","c", "g", "m", "k"]
 
+# How to put math characters in plot
+# "grad_norms": r"$\Vert\nabla \ell\Vert$",
+#     "costs": "Negative log-likelihood"
 
-def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200, add_labels=True):
+grid_index = 0
+axis_index = 1
+label_index = 2
+title_index = 3
+ticks_index = 4
+
+def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200, add_labels=True, plot_params = [False, False, False, False, False]):
     """
     Plot a graph with nodes and edges based on provided adjacency matrix and node coordinates.
 
@@ -23,12 +42,15 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_wi
 
     """
     # create networkx graph from adjacency matrix
+    adj_matrix = G.adj_matrix
     graph = nx.from_numpy_array(adj_matrix)
 
     # create dictionary of node positions using (x, y) coordinates
     pos = {i: (x_coord[i], y_coord[i]) for i in range(len(x_coord))}
 
-    plt.figure(figsize=figsize, dpi=dpi)
+    fig = plt.figure(figsize=figsize, dpi=dpi)
+    ax = fig.add_subplot(1, 1, 1)
+
 
     # draw nodes and edges
     node_size = node_size
@@ -55,12 +77,32 @@ def graph_plot(adj_matrix, x_coord, y_coord, title="Graph", node_size=1, edge_wi
     #     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='black')
 
     # set axis labels and title
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title(title)
+    if plot_params[label_index]:
+        plt.xlabel(r"$x$")
+        plt.ylabel(r"$y$")
+    if plot_params[title_index]:
+        plt.title("awesome graph :P")
+    if plot_params[grid_index]: 
+        plt.grid(True, linewidth = 0.05)
+        
+    # PROBLEM WITH TICKS, TRY TO FIX LATER
+    if plot_params[ticks_index]:
+        xticks = np.arange(-1,1,0.2)    
+        ax.set_xticks(xticks)
+        ax.set_xticklabels([xticks[i] for i in range(len(xticks))])
 
     # set equal scaling for both axes
     plt.axis('equal')
+    if plot_params[axis_index]:
+        for axis in ax.spines.keys():
+            ax.spines[axis].set_linewidth(0.5)
+    else:
+        for axis in ax.spines.keys():
+            ax.spines[axis].set_linewidth(0)
+        
+    filename = G.name
+    plt.savefig("plots/" + filename)
 
     # display plot
     plt.show()
+    plt.close()

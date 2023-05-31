@@ -7,6 +7,8 @@ from graph_class import Graph
 import hde as hde
 import time as time
 from pm import *
+from graph_plot import * 
+import csv
 
 def rayleigh_quotient(A, x):
     return np.dot(x,A@x) / np.dot(x,x)
@@ -191,7 +193,7 @@ def hde_matrix(L, X, use_sparse = True, use_gershgorin = False, test_gershgorin 
 
 
 
-def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = True, prints = False):
+def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True, prints = False):
     """
     Compute the top non-degenerate eigenvectors of the degree-normalized adjacency matrix of a graph.
 
@@ -221,6 +223,8 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Tr
         If the power method does not converge within the specified number of iterations, a warning is printed.
 
     """
+    A = G.adj_matrix
+    D = np.diag(G.degs)
     n = D.shape[0]
     D_diag = D.diagonal()
     D_inv_diag = np.ones(n) / D_diag
@@ -275,3 +279,27 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Tr
         U[:, k] = uk_t
 
     return U[:, 1:], times
+
+grid_index = 0
+axis_index = 1
+label_index = 2
+title_index = 3
+ticks_index = 4
+n_plot_params = 5
+
+def draw(G: Graph, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, plot_params = [False for _ in range(n_plot_params)]):
+    # #Degree normalized eigenvectors
+    U, times = degree_normalized_eigenvectors(G, 2, tol = tol, max_iter = max_iter, matmul = True)
+    
+    # Save file with eigenvalue information
+    filename = "plots/" + G.name + "eigenvectors.csv"
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["u^2", "u^3"])
+        for i in range(G.n_nodes):
+            writer.writerow([U[i,0], U[i,1]])
+    
+    x_coord = U[:, 0]
+    y_coord = U[:, 1]
+    graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
+    return U
