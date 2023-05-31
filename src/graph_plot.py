@@ -100,7 +100,7 @@ def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, 
         for axis in ax.spines.keys():
             ax.spines[axis].set_linewidth(0)
         
-    filename = G.name
+    filename = G.num_name
     plt.savefig("plots/" + filename)
 
     # display plot

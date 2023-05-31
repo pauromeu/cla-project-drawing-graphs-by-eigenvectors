@@ -102,6 +102,7 @@ class Graph:
             name_len = len(filename)
             name = filename[name_len - filename[::-1].find('/'):filename.find('.')]
             self.name = name
+            self.num_name = None
         else:
             self.n_nodes = None
             self.n_edges = None
@@ -110,6 +111,7 @@ class Graph:
             self.degs = None
             self.laplacian = None
             self.name = None
+            self.num_name = None
     
     def set_adj_list(self):
         if self.adj_matrix.all() != None and self.adj_list == None:
@@ -122,7 +124,11 @@ class Graph:
                 self.adj_list.append(adj_list_node_i)
                 
     def set_name(self, name: str):
-        self.name = name        
+        self.name = name
+        self.num_name = name
+        
+    def set_num_name(self, name: str):
+        self.num_name = name   
    
     def set_adj_matrix(self, A):
         self.adj_matrix = A

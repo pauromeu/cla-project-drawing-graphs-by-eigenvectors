@@ -22,13 +22,15 @@ graphs.append(G)
 G = bipartite(50,50)
 graphs.append(G)
 
-pwd = os.getcwd()
-f = open(pwd + '/data/3elt.graph')
-G = Graph(f)
-graphs.append(G)
+# pwd = os.getcwd()
+# f = open(pwd + '/data/3elt.graph')
+# G = Graph(f)
+# graphs.append(G)
+
+draw_n(G, 4, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
 
 for G in graphs:
-    U = draw(G, max_iter = 2000, plot_params = plot_params)
+    U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
 
 
 
