@@ -3,8 +3,10 @@ from spectral_drawing import *
 from graph_class import Graph
 from graph_collection import *
 import os
+from sbm import gen_sbm_graph
+from load_sbm_array import *
 plot_params = [False for _ in range(n_plot_params)]
-plot_params[title_index] = True
+plot_params[title_index] = False
 plot_params[label_index] = True
 plot_params[axis_index] = True
 plot_params[grid_index] = True 
@@ -13,24 +15,71 @@ plot_params[grid_index] = True
 # G = Graph(f)
 # print(G)
 graphs = []
-G = cyclic_graph(5)
-graphs.append(G)
+# G = cyclic_graph(5)
+# graphs.append(G)
 
-G = regular_graph(100,50)
-graphs.append(G)
+# G = regular_graph(100,50)
+# graphs.append(G)
 
-G = bipartite(50,50)
-graphs.append(G)
+# G = bipartite(50,50)
+# graphs.append(G)
 
 # pwd = os.getcwd()
-# f = open(pwd + '/data/3elt.graph')
+# f = open(pwd + '/data/4elt.txt')
 # G = Graph(f)
 # graphs.append(G)
 
-draw_n(G, 4, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+# # SBM graph
+# alpha = 0.99
+# lbda = 0.99
+# n = 500
+# K = 5
+# G = gen_sbm_graph(alpha, lbda, n, K)
+# graphs.append(G)
 
-for G in graphs:
-    U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+# Plots SBMs
+# alpha = 0.99
+# lbda = 0.99
+# Ks = [1, 2, 4, 8, 16]
+# alphas = np.linspace(0.1, 0.99, num = 5)
+# lbdas = np.linspace(0.9, 0.99, num = 5)
+# n = 500
+# K = 5
+# # Increasing lbda
+# graphs = []
+# for lbda in lbdas:
+#     G = gen_sbm_graph(alpha, lbda, n, K)
+#     graphs.append(G)
+# for G in graphs:
+#      U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+
+# # Increasing alpha
+# graphs = []
+# for alpha in alphas:
+#     G = gen_sbm_graph(alpha, lbda, n, K)
+#     graphs.append(G)
+# for G in graphs:
+#      U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+
+# # Increasing K
+# graphs = []
+# for K in Ks:
+#     G = gen_sbm_graph(alpha, lbda, n, K)
+#     graphs.append(G)
+# for G in graphs:
+#      U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+
+# # Saved SBM graph with 500 nodes, 5 communities and alpha, lambda = 0.99
+# G = Graph()
+# G.set_adj_matrix(sbm_500_5_99_99)
+# G.set_name("sbm_500_5_99_99")
+
+# draw_n(G, 5, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+
+
+
+# for G in graphs:
+#     U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
 
 
 

@@ -207,6 +207,7 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True,
     D_inv_sparse = csr_matrix(np.diag(D_inv_diag))
     A_sparse = csr_matrix(A)
     D_inv_A_sparse = D_inv_sparse@A_sparse
+    B_sparse = 0.5 * (csr_matrix(np.eye(G.n_nodes)) + D_inv_A_sparse)
     U = np.zeros((n, p + 1))
     U[:, 0] = np.ones(n) / np.sqrt(n)
     B = 0.5 * (np.eye(G.n_nodes) + np.diag(D_inv_diag)@G.adj_matrix)
@@ -240,7 +241,7 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True,
                     uk_t[i] = 0.5 * (uk[i] + neig / D[i, i])
             else:
                 if prints: print("computing with matrix multiplication")
-                uk_t = 0.5 * (uk + D_inv_A_sparse @ uk)
+                uk_t = B @ uk
             t_matmul_1 = time.time()
             # uk_t = 0.5 * (uk + (A @ uk) * D_inv.diagonal()) # vectorized version
 
@@ -275,7 +276,7 @@ def draw(G: Graph, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0
     U, times = degree_normalized_eigenvectors(G, 2, tol = tol, max_iter = max_iter, matmul = True, mode = mode)
     
     # Save file with eigenvalue information
-    filename = "plots/" + G.num_name + "eigenvectors.csv"
+    filename = "files/" + G.num_name + "eigenvectors.csv"
     with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["u^2", "u^3"])
