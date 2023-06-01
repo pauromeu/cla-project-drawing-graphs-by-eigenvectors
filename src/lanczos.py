@@ -1,41 +1,46 @@
 import numpy as np
-from scipy.linalg import eigh
+from scipy.sparse.linalg import norm
 
 
-def lanczos(A, m):
+def lanczos(A, k):
     n = A.shape[0]
-    V = np.zeros((n, m+1))
-    T = np.zeros((m+1, m+1))
+    Q = np.zeros((n, k+1))
+    alpha = np.zeros(k)
+    beta = np.zeros(k+1)
 
-    # Initial vector
-    V[:, 0] = np.random.rand(n)
-    V[:, 0] = V[:, 0] / np.linalg.norm(V[:, 0])
+    Q[:, 0] = np.random.rand(n)  # Random initial vector
+    Q[:, 0] /= norm(Q[:, 0])  # Normalize
 
-    for j in range(m):
-        V[:, j+1] = A.dot(V[:, j])
-        T[j, j] = np.dot(V[:, j], V[:, j+1])
-        V[:, j+1] = V[:, j+1] - T[j, j] * V[:, j]
+    for j in range(k):
+        Q[:, j+1] = A @ Q[:, j]
+        alpha[j] = np.dot(Q[:, j], Q[:, j+1])
+        Q[:, j+1] -= beta[j] * Q[:, j]
+        Q[:, j+1] -= alpha[j] * Q[:, j]
 
-        if j+1 < m:
-            T[j+1, j] = np.linalg.norm(V[:, j+1])
-            T[j, j+1] = T[j+1, j]
-            if T[j+1, j] != 0:
-                V[:, j+1] = V[:, j+1] / T[j+1, j]
+        beta[j+1] = norm(Q[:, j+1])
+        Q[:, j+1] /= beta[j+1]
 
-    T = T[:m, :m]
-    V = V[:, :m]
+    T = np.diag(alpha) + np.diag(beta[:-1], 1) + np.diag(beta[:-1], -1)
 
-    evals_small, evecs_small = eigh(T)
-    evecs = V.dot(evecs_small)
-
-    return evals_small, evecs
+    return T, Q
 
 
-# Usage
-np.random.seed(32)
-A = np.random.rand(5, 5)
-A = A + A.T
-m = 3
-evals, evecs = lanczos(A, m)
-print('Eigenvalues:', evals)
-print('Eigenvectors:', evecs)
+def implicitly_restarted_lanczos(A, k, restarts=20):
+    n = A.shape[0]
+    V = np.zeros((n, k * restarts))
+    T = np.zeros((k * restarts, k * restarts))
+
+    for r in range(restarts):
+        Q = lanczos(A, k)
+        V[:, r * k: (r + 1) * k] = Q[1]
+        T[r * k: (r + 1) * k, r * k: (r + 1) * k] = Q[0]
+
+        if r < restarts - 1:
+            A = A - Q[1][:, -1].reshape(-1, 1) @ Q[0][-1, :].reshape(1, -1)
+
+    eigenvalues, eigenvectors = np.linalg.eig(T)
+    sorted_indices = np.argsort(eigenvalues)
+    eigenvalues = eigenvalues[sorted_indices][:k]
+    eigenvectors = V @ eigenvectors[:, sorted_indices][:, :k]
+
+    return eigenvalues, eigenvectors
