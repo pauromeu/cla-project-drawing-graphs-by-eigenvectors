@@ -21,7 +21,7 @@ label_index = 2
 title_index = 3
 ticks_index = 4
 
-def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200, add_labels=True, plot_params = [False, False, False, False, False]):
+def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, cross=False, figsize=(7, 7), dpi=200, add_labels=True, plot_params = [False, False, False, False, False], plot_name = None):
     """
     Plot a graph with nodes and edges based on provided adjacency matrix and node coordinates.
 
@@ -89,7 +89,7 @@ def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, 
     if plot_params[ticks_index]:
         xticks = np.arange(-1,1,0.2)    
         ax.set_xticks(xticks)
-        ax.set_xticklabels([xticks[i] for i in range(len(xticks))])
+        ax.set_xticklabels([str(xticks[i]) for i in range(len(xticks))])
 
     # set equal scaling for both axes
     plt.axis('equal')
@@ -101,8 +101,10 @@ def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, 
             ax.spines[axis].set_linewidth(0)
         
     filename = G.num_name
+    if plot_name != None:
+        filename = plot_name
     plt.savefig("plots/" + filename)
 
     # display plot
-    plt.show()
+    # plt.show()
     plt.close()

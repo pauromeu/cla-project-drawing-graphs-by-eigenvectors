@@ -3,15 +3,26 @@ from numpy.linalg import norm
 import random as random
 from scipy.stats import ortho_group
 from scipy.sparse import csr_matrix
+from scipy.sparse.linalg import eigs
 from graph_class import Graph
 import hde as hde
 import time as time
 from pm import *
 from graph_plot import * 
+from scipy.sparse.linalg import splu
+from scipy.sparse import identity
 import csv
+import mpmath as mp
+
+# Set the desired precision
+# mp.dps = 100
 
 def rayleigh_quotient(A, x):
     return np.dot(x,A@x) / np.dot(x,x)
+
+def sparse_rayleigh_quotient(A_sparse, x):
+    xT = x[np.newaxis, :]
+    return (xT @ A_sparse @ x) / np.dot(x,x)
 
 def hde_spectral_drawing(G: Graph, p: int, m: int, tol = 1e-8, max_iters = 1000, D_orth = True, prints = False, test = False, test_gershgorin = False, use_gershgorin = False):
     X = hde.hde(G, m, D_orth = D_orth)
@@ -202,6 +213,8 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True,
     A = G.adj_matrix
     D = np.diag(G.degs)
     n = D.shape[0]
+    adj_list = G.adj_list
+    degs = G.degs
     D_diag = D.diagonal()
     D_inv_diag = np.ones(n) / D_diag
     D_inv_sparse = csr_matrix(np.diag(D_inv_diag))
@@ -235,10 +248,16 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True,
 
             # multiply with 1/2 * (I + D^-1 A)
             t_matmul_0 = time.time()
+            
             if not matmul:
+                #print("Not matmul!")
                 for i in range(n):
-                    neig = A[i, :] @ uk
-                    uk_t[i] = 0.5 * (uk[i] + neig / D[i, i])
+                    uk_t[i] = 0.5 * (uk[i] + np.sum(uk[adj_list[i]]) / degs[i])
+                # uk_t = 0.5 * (uk_t + uk)
+                # for i in range(n):
+                #     adj_list_i = adj_list[i]
+                #     neig = np.dot(A[i,adj_list_i], uk[adj_list_i])
+                #     uk_t[i] = 0.5 * (uk[i] + neig / D[i, i])
             else:
                 if prints: print("computing with matrix multiplication")
                 uk_t = B @ uk
@@ -258,9 +277,16 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True,
             print(f"last residual = ", residual)
         else:
             print("Convergence reached for eigenvector u^",k + 1)
+            
+        # D-orthogonalize against previous eigenvectors
+        for l in range(k):
+            ul = U[:, l]
+            D_ul = D_diag * ul
+            uk_t = uk_t - np.dot(uk_t, D_ul) / np.dot(ul, D_ul) * ul
+        uk_t = uk_t / norm(uk_t)  # normalize again 
         U[:, k] = uk_t
 
-    return U[:, 1:], times
+    return U[:, 1:], times, B_sparse
 
 grid_index = 0
 axis_index = 1
@@ -269,29 +295,129 @@ title_index = 3
 ticks_index = 4
 n_plot_params = 5
 
-def draw(G: Graph, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)], numbering = -1):
+def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D = None):
+    n = B_sparse.shape[0]
+    all_ones = np.ones(n) / np.sqrt(n)
+    U = np.zeros(shape = (n, n))
+    if D.all() == None:
+        D = csr_matrix(np.eye(n))
+    U[:,0] = all_ones.copy()
+    for k in range(1,p + 1):
+        x = np.random.rand(n)
+        if k > 0:
+            for l in range(k - 1):
+                ul = D@U[:,l]
+                x -= np.dot(x,ul) / np.dot(ul, ul) * ul
+        x /= norm(x)
+        for i in range(max_iter):
+            xprev = x
+            y = B_sparse@x
+            if k > 0:
+                for l in range(k):
+                    ul = U[:,l]
+                    y -= np.dot(y, ul) / np.dot(ul, ul) * ul
+            x = y / norm(y)
+            if stopping_criteria_pm(x, xprev, B_sparse, tol, i, mode = 0) < tol:
+                break
+        if i == max_iter - 1:
+            print("Warning: convergence not reached!")
+            print("residual = ", stopping_criteria_pm(x, xprev, B_sparse, tol, i, mode = 0))
+                
+        xvecT = x[np.newaxis,:]
+        xvec = x[:, np.newaxis]
+        mu = sparse_rayleigh_quotient(B_sparse, x)
+        B_sparse -= csr_matrix(mu * (xvec@ xvecT))
+        U[:,k] = x
+    return U[:,1:]
+            
+            
+        
+        
+    print(n)
+    return 0
+
+    return eigenvectors
+
+def rayleigh_iteration(A, p, tol = 1e-8, max_iter = 1000, D = None):
+    n = A.shape[0]
+    id_csr = identity(n, format = 'csr')
+    U = np.zeros(shape = (n,n))
+    for k in range(p):
+        x = np.random.rand(n)
+        x /= norm(x)
+        x_prev = x
+        x = np.zeros(n)
+        iters = 0
+        residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode = 0)
+        while residual > tol and iters < max_iter:
+            # Orthogonalize w.r.t. previous eigenvectors
+            for l in range(k):
+                ul = U[:,l]
+                D_ul = np.diagonal(D)*ul
+                x -= np.dot(x,D_ul) / np.dot(ul, D_ul) * ul
+            
+            sigma = np.dot(x_prev, A@x_prev)
+            shift = A - id_csr
+            lu = splu(shift)
+            y = lu.solve(x_prev)
+            x = y / norm(y)
+            iters += 1
+            residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode = 0)
+        U[:,k] = x
+        # Deflate original matrix A
+    return U
+            
+            
+            
+        
+
+def draw(G: Graph, p = 2, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)], numbering = -1, reference = False):
     # #Degree normalized eigenvectors
     if numbering != -1:
         G.set_num_name(G.name + "_" + str(numbering))
-    U, times = degree_normalized_eigenvectors(G, 2, tol = tol, max_iter = max_iter, matmul = True, mode = mode)
+    # U, times, B_sparse = degree_normalized_eigenvectors(G, p, tol = tol, max_iter = max_iter, matmul = True, mode = mode)
     
-    # Save file with eigenvalue information
+    # # Save file with eigenvalue information
+    # filename = "files/" + G.num_name + "eigenvectors.csv"
+    # with open(filename, 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(["u^" + str(i + 2) for i in range(p)])
+    #     for i in range(G.n_nodes):
+    #         writer.writerow([U[i,j] for j in range(p)])
+    D_inv_A_sparse = csr_matrix(np.diag(np.ones(G.n_nodes) / G.degs) @ G.adj_matrix)
+    B_sparse = 0.5 * (csr_matrix(np.eye(G.n_nodes)) + D_inv_A_sparse)
+    # U = power_method_sparse(B_sparse, p, tol = tol, max_iter = max_iter, D = np.diag(G.degs))
+    # approximate_eigenvalues = np.array([sparse_rayleigh_quotient(B_sparse, U[:, i]) for i in range(p)])
+    # filename = "files/" + G.num_name + "eigenvalues.csv"
+    # with open(filename, 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(["lambda_" + str(i + 2) for i in range(p)])
+    #     writer.writerow(approximate_eigenvalues)
+        
+    # Eigenvalues and eigenvectors with reference method
     filename = "files/" + G.num_name + "eigenvectors.csv"
-    with open(filename, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["u^2", "u^3"])
-        for i in range(G.n_nodes):
-            writer.writerow([U[i,0], U[i,1]])
+    if reference:
+        eigenvalues, eigenvectors = eigs(B_sparse, k = p + 1, which='LM')
+        with open(filename, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(eigenvalues[1:])
+            
+        x_coord = eigenvectors[:, 1]
+        y_coord = eigenvectors[:, 2]
+        plot_name = G.num_name + "_ref"
+        graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params, plot_name = plot_name)
+        
     
-    x_coord = U[:, 0]
-    y_coord = U[:, 1]
-    graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
-    return U
+    # x_coord = U[:, 0]
+    # y_coord = U[:, 1]
+    # graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
+    # return 1
+    
 
 def draw_from_dict(main_args):
     draw(**{key: value for arg in main_args for key, value in main_args.items()})
 
-def draw_n(G: Graph, n: int, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)]):
+def draw_n(G: Graph, n: int, p = 2, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)], reference = False):
     saved_args = locals()
     main_args = {}
     for key in saved_args.keys():
