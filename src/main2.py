@@ -7,7 +7,7 @@ plot_params = [False for _ in range(n_plot_params)]
 plot_params[title_index] = True
 plot_params[label_index] = True
 plot_params[axis_index] = True
-plot_params[grid_index] = True 
+plot_params[grid_index] = True
 # pwd = "/Users/guifre/cla_project/cla-project-drawing-graphs-by-eigenvectors"
 # f = open(pwd + '/data/crack.graph')
 # G = Graph(f)
@@ -16,23 +16,21 @@ graphs = []
 G = cyclic_graph(5)
 graphs.append(G)
 
-G = regular_graph(100,50)
+G = regular_graph(100, 50)
 graphs.append(G)
 
-G = bipartite(50,50)
+G = bipartite(50, 50)
 graphs.append(G)
 
-# pwd = os.getcwd()
-# f = open(pwd + '/data/3elt.graph')
-# G = Graph(f)
-# graphs.append(G)
+pwd = os.getcwd()
+f = open(pwd + '/data/3elt.graph')
+G = Graph(f)
+graphs.append(G)
 
-draw_n(G, 4, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
+draw_n(G, 4, tol=1e-8, max_iter=2000, plot_params=plot_params, mode=0)
 
 for G in graphs:
-    U = draw(G, tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
-
-
+    U = draw(G, tol=1e-8, max_iter=2000, plot_params=plot_params, mode=0)
 
 
 # #Degree normalized eigenvectors
