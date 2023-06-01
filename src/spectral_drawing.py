@@ -363,13 +363,20 @@ def rayleigh_iteration(A, p, tol=1e-8, max_iter=1000, D=None):
     id_csr = identity(n, format='csr')
     U = np.zeros(shape=(n, n))
     for k in range(p):
+        print("Computing eigenvector ", k + 1)
         x = np.random.rand(n)
         x /= norm(x)
-        x_prev = x
-        x = np.zeros(n)
+        x_prev = x.copy()
+        if k == 0: 
+            sigma = 1.0
+        else:
+            sigma -= 1e-9
+        sigma_prev = sigma
         iters = 0
         residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode=0)
         while residual > tol and iters < max_iter:
+            x_prev = x
+            sigma_prev = sigma
             # Orthogonalize w.r.t. previous eigenvectors
             for l in range(k):
                 ul = U[:, l]
@@ -381,9 +388,26 @@ def rayleigh_iteration(A, p, tol=1e-8, max_iter=1000, D=None):
             lu = splu(shift)
             y = lu.solve(x_prev)
             x = y / norm(y)
+            sigma = np.dot(x, A@x)
+            
+            for l in range(k):
+                ul = U[:,l]
+                D_ul = ul.copy()
+                x = x - (np.dot(x,D_ul) / np.dot(ul, D_ul)) * ul
+                
+            # print("After orthogonalization 2")
+            # print(x)
+            # print(np.dot(x,U[:,0]))
             iters += 1
-            residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode=0)
-        U[:, k] = x
+            residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode = 0)
+            # residual = np.abs(sigma - sigma_prev)
+            # if iters <= 100:
+            #     print("Iteration ", iters, " for eigenvector ", k + 1, " | residual = ", residual, " sigma = ", sigma)
+            #     print("Scalar products")
+            #     print(U[:,0])
+            #     print(x)
+            #     print(np.dot(x,U[:,0]))
+        U[:,k] = x
         # Deflate original matrix A
     return U
 
@@ -412,7 +436,9 @@ def draw(G: Graph, p=2, tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1,
     #     writer = csv.writer(file)
     #     writer.writerow(["lambda_" + str(i + 2) for i in range(p)])
     #     writer.writerow(approximate_eigenvalues)
-
+    
+    U = rayleigh_iteration(B_sparse, p + 1, tol = tol, max_iter = max_iter)
+        
     # Eigenvalues and eigenvectors with reference method
     filename = "files/" + G.num_name + "eigenvectors.csv"
     if reference:
@@ -424,15 +450,14 @@ def draw(G: Graph, p=2, tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1,
         x_coord = eigenvectors[:, 1]
         y_coord = eigenvectors[:, 2]
         plot_name = G.num_name + "_ref"
-        graph_plot(G, x_coord, y_coord, node_size=node_size, figsize=figsize, dpi=dpi,
-                   add_labels=False, edge_width=edge_width, plot_params=plot_params, plot_name=plot_name)
-
-    x_coord = U[:, 0]
-    y_coord = U[:, 1]
-    graph_plot(G, x_coord, y_coord, node_size=node_size, figsize=figsize,
-               dpi=dpi, add_labels=False, edge_width=edge_width, plot_params=plot_params)
+        graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params, plot_name = plot_name)
+        
+    
+    x_coord = U[:, 1]
+    y_coord = U[:, 2]
+    graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
     return 1
-
+    
 
 def draw_from_dict(main_args):
     draw(**{key: value for arg in main_args for key, value in main_args.items()})

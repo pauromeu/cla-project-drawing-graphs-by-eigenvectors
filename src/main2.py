@@ -27,72 +27,77 @@ graphs = []
 
 
 # Plots Walshaw collection
-pwd = os.getcwd()
-f = open(pwd + '/data/3elt.graph')
-G = Graph(f)
-graphs.append(G)
-print(G)
+# pwd = os.getcwd()
+# f = open(pwd + '/data/3elt.graph')
+# G = Graph(f)
+# graphs.append(G)
+# print(G)
 
-f = open(pwd + '/data/crack.graph')
-G = Graph(f)
-graphs.append(G)
-print(G)
+# f = open(pwd + '/data/crack.graph')
+# G = Graph(f)
+# graphs.append(G)
+# print(G)
 
-f = open(pwd + '/data/add20.txt')
-G = Graph(f)
-graphs.append(G)
-print(G)
+# f = open(pwd + '/data/add20.txt')
+# G = Graph(f)
+# graphs.append(G)
+# print(G)
 
-f = open(pwd + '/data/uk.graph')
+# f = open(pwd + '/data/uk.graph')
+# G = Graph(f)
+# graphs.append(G)
+# print(G)
+
+f = open(pwd + '/data/4elt.txt')
 G = Graph(f)
 graphs.append(G)
 print(G)
 
 for G in graphs:
-    draw_n(G, 3, p = 2, tol = 1e-10, max_iter = 10000, plot_params = plot_params, mode = 0, reference = True)
+    draw_n(G, 1, p = 2, tol = 1e-8, max_iter = 1000, plot_params = plot_params, mode = 0, reference = False)
 
-# SBM graph
-tol = 1e-10
-max_iter = 10000
+# # SBM graph
+# tol = 1e-10
+# max_iter = 10000
 
-alpha = 0.99
-lbda = 0.99
-n = 500
-K = 5
-G = gen_sbm_graph(alpha, lbda, n, K)
-graphs.append(G)
+# alpha = 0.99
+# lbda = 0.99
+# n = 500
+# K = 5
+# G = gen_sbm_graph(alpha, lbda, n, K)
+# graphs.append(G)
 
-# Plots SBMs
-alpha = 0.99
-lbda = 0.99
-Ks = [1, 2, 4, 8, 16]
-alphas = np.linspace(0.1, 0.99, num = 5)
-lbdas = np.linspace(0.9, 0.99, num = 5)
-n = 500
-K = 5
-# Increasing lbda
-graphs = []
-for lbda in lbdas:
-    G = gen_sbm_graph(alpha, lbda, n, K)
-    graphs.append(G)
-for G in graphs:
-     U = draw(G, tol = tol, max_iter = max_iter, plot_params = plot_params, mode = 0, reference = True)
+# # Plots SBMs
+# alpha = 0.99
+# lbda = 0.99
+# Ks = [1, 2, 4, 8, 16]
+# alphas = np.linspace(0.1, 0.99, num = 5)
+# lbdas = np.linspace(0.9, 0.99, num = 5)
+# n = 500
+# K = 5
+# # Increasing lbda
+# graphs = []
+# for lbda in lbdas:
+#     G = gen_sbm_graph(alpha, lbda, n, K)
+#     graphs.append(G)
+# for G in graphs:
+#      U = draw(G, tol = tol, max_iter = max_iter, plot_params = plot_params, mode = 0, reference = True)
 
-# Increasing alpha
-graphs = []
-for alpha in alphas:
-    G = gen_sbm_graph(alpha, lbda, n, K)
-    graphs.append(G)
-for G in graphs:
-     U = draw(G, tol = tol, max_iter = max_iter, plot_params = plot_params, mode = 0, reference = True)
+# # Increasing alpha
+# graphs = []
+# for alpha in alphas:
+#     G = gen_sbm_graph(alpha, lbda, n, K)
+#     graphs.append(G)
+# for G in graphs:
+#      U = draw(G, tol = tol, max_iter = max_iter, plot_params = plot_params, mode = 0, reference = True)
 
-# Increasing K
-graphs = []
-for K in Ks:
-    G = gen_sbm_graph(alpha, lbda, n, K)
-    graphs.append(G)
-for G in graphs:
-     U = draw(G, tol = tol, max_iter = max_iter, plot_params = plot_params, mode = 0, reference = True)
+# # Increasing K
+# graphs = []
+# for K in Ks:
+#     G = gen_sbm_graph(alpha, lbda, n, K)
+#     graphs.append(G)
+# for G in graphs:
+#      U = draw(G, tol = tol, max_iter = max_iter, plot_params = plot_params, mode = 0, reference = True)
 
 # # Saved SBM graph with 500 nodes, 5 communities and alpha, lambda = 0.99
 # G = Graph()
