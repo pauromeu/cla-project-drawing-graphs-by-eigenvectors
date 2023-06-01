@@ -55,6 +55,12 @@ class Graph:
     
     def vec_bfs_distances(self, start_node_list):
         return np.vectorize(Graph.bfs_distances)(start_node_list)
+    
+    def get_adj_list_element(self, index):
+        return self.adj_list[index]
+    
+    def vec_get_adj_list_element(self, index_list):
+        return np.vectorize(Graph.get_adj_list_element)(index_list)
 
     def get_nodes_edges_from_file(chaco_file):
         # get number of nodes and edges from chaco file first line

@@ -89,7 +89,7 @@ def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, 
     if plot_params[ticks_index]:
         xticks = np.arange(-1, 1, 0.2)
         ax.set_xticks(xticks)
-        ax.set_xticklabels([xticks[i] for i in range(len(xticks))])
+        ax.set_xticklabels([str(xticks[i]) for i in range(len(xticks))])
 
     # set equal scaling for both axes
     plt.axis('equal')
@@ -105,5 +105,5 @@ def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, 
         plt.savefig("plots/" + filename)
 
     # display plot
-    plt.show()
+    # plt.show()
     plt.close()
