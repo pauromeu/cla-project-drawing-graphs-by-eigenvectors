@@ -20,7 +20,7 @@ def barabasi_albert_graph(n, m, seed=None):
     return G
 
 
-n = 1000
+n = 100
 m = 2
 
 G = barabasi_albert_graph(n, m, seed=32)
@@ -32,4 +32,4 @@ U, times = degree_normalized_eigenvectors(
 x_coord = U[:, 0]
 y_coord = U[:, 1]
 
-graph_plot(G.adj_matrix, x_coord, y_coord)
+graph_plot(G.adj_matrix, x_coord, y_coord, add_labels=False)
