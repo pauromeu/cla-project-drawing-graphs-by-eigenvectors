@@ -7,6 +7,8 @@ from graph_class import Graph
 import hde as hde
 import time as time
 from pm import *
+from graph_plot import * 
+import csv
 
 def rayleigh_quotient(A, x):
     return np.dot(x,A@x) / np.dot(x,x)
@@ -78,6 +80,8 @@ def stopping_criteria_pm(x, xprev, A, tol, iters, mode = 0):
             residual = 1. - np.dot(x, xprev)
         elif mode == 1: # computing the residual
             residual = norm(A@x - rayleigh_quotient(A,x)*x)
+        elif mode == 2:
+            residual = norm(x - xprev)
         return residual
     else:
         return 99999
@@ -164,34 +168,8 @@ def hde_matrix(L, X, use_sparse = True, use_gershgorin = False, test_gershgorin 
     B = 0.5 * (np.eye(m) -  XLX / mu)
     return B
 
-# # Test hde matrix
-# pwd = "/Users/guifre/cla_project/cla-project-drawing-graphs-by-eigenvectors"
-# f = open(pwd + "/data/add20.txt", "r")
-# G = Graph(f)
-# m = 4
-# X = hde.hde(G, m)
-# B = hde_matrix(G.laplacian, X)
-# print(B)
 
-
-
-                    
-    
-    
-    
-
-# # Test case for Gershgorin bound
-# # Given matrix
-# matrix = np.array([[3, 1, 2, 4],
-#                    [0, 6, 2, 1],
-#                    [1, 0, 4, 2],
-#                    [2, 1, 0, 5]])
-
-# print(gershogorin_bound(matrix))
-
-
-
-def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = True, prints = False):
+def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul = True, prints = False, mode = 0):
     """
     Compute the top non-degenerate eigenvectors of the degree-normalized adjacency matrix of a graph.
 
@@ -221,11 +199,17 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Tr
         If the power method does not converge within the specified number of iterations, a warning is printed.
 
     """
+    A = G.adj_matrix
+    D = np.diag(G.degs)
     n = D.shape[0]
     D_diag = D.diagonal()
     D_inv_diag = np.ones(n) / D_diag
+    D_inv_sparse = csr_matrix(np.diag(D_inv_diag))
+    A_sparse = csr_matrix(A)
+    D_inv_A_sparse = D_inv_sparse@A_sparse
     U = np.zeros((n, p + 1))
     U[:, 0] = np.ones(n) / np.sqrt(n)
+    B = 0.5 * (np.eye(G.n_nodes) + np.diag(D_inv_diag)@G.adj_matrix)
     times = []
     for k in range(1, p + 1):
         print("Finding ", k, "-th eigenvector...")
@@ -234,7 +218,8 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Tr
         uk = np.zeros(n)
         iter_count = 0
         iter_times = []
-        while np.linalg.norm(uk - uk_t) >= tol and iter_count < max_iter:
+        residual = stopping_criteria_pm(uk, uk_t, B, tol, iter_count, mode = mode)
+        while residual >= tol and iter_count < max_iter:
             t_iter_0 = time.time()
             uk = uk_t.copy()
             t_for_k_0 = time.time()
@@ -255,12 +240,12 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Tr
                     uk_t[i] = 0.5 * (uk[i] + neig / D[i, i])
             else:
                 if prints: print("computing with matrix multiplication")
-                uk_t = 0.5 * (uk + D_inv_diag * (A @ uk))
+                uk_t = 0.5 * (uk + D_inv_A_sparse @ uk)
             t_matmul_1 = time.time()
             # uk_t = 0.5 * (uk + (A @ uk) * D_inv.diagonal()) # vectorized version
 
             uk_t = uk_t / norm(uk_t)  # normalization
-
+            residual = stopping_criteria_pm(uk, uk_t, B, tol, iter_count, mode = mode)
             iter_count += 1
             t_iter_1 = time.time()
             
@@ -269,9 +254,49 @@ def degree_normalized_eigenvectors(D, A, p, tol=1e-6, max_iter=2000, matmul = Tr
 
         if iter_count == max_iter:
             print(f"Warning: Convergence not reached for k = {k}")
-            print(f"1 - product = ", 1 - abs(np.dot(uk_t, uk)))
+            print(f"last residual = ", residual)
         else:
             print("Convergence reached for eigenvector u^",k + 1)
         U[:, k] = uk_t
 
     return U[:, 1:], times
+
+grid_index = 0
+axis_index = 1
+label_index = 2
+title_index = 3
+ticks_index = 4
+n_plot_params = 5
+
+def draw(G: Graph, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)], numbering = -1):
+    # #Degree normalized eigenvectors
+    if numbering != -1:
+        G.set_num_name(G.name + "_" + str(numbering))
+    U, times = degree_normalized_eigenvectors(G, 2, tol = tol, max_iter = max_iter, matmul = True, mode = mode)
+    
+    # Save file with eigenvalue information
+    filename = "plots/" + G.num_name + "eigenvectors.csv"
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["u^2", "u^3"])
+        for i in range(G.n_nodes):
+            writer.writerow([U[i,0], U[i,1]])
+    
+    x_coord = U[:, 0]
+    y_coord = U[:, 1]
+    graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
+    return U
+
+def draw_from_dict(main_args):
+    draw(**{key: value for arg in main_args for key, value in main_args.items()})
+
+def draw_n(G: Graph, n: int, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3,3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)]):
+    saved_args = locals()
+    main_args = {}
+    for key in saved_args.keys():
+        if key != 'n': main_args[key] = saved_args[key]
+
+    for i in range(n):
+        main_args['numbering'] = i + 1
+        draw_from_dict(main_args)
+
