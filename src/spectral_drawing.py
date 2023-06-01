@@ -1,4 +1,3 @@
-import mpmath as mp
 import csv
 from scipy.sparse import identity
 from scipy.sparse.linalg import splu
@@ -13,9 +12,7 @@ from graph_class import Graph
 import hde as hde
 import time as time
 from pm import *
-<< << << < HEAD
-== == == =
->>>>>> > c108cbacb9b15a5a1d78b13580ecc6b978cadcb9
+
 
 # Set the desired precision
 # mp.dps = 100
@@ -25,14 +22,8 @@ def rayleigh_quotient(A, x):
     return np.dot(x, A@x) / np.dot(x, x)
 
 
-<< << << < HEAD
-
-
 def hde_spectral_drawing(G: Graph, p: int, m: int, tol=1e-8, max_iters=1000, D_orth=True, prints=False, test=False, test_gershgorin=False, use_gershgorin=False):
     X = hde.hde(G, m, D_orth=D_orth)
-
-
-== == == =
 
 
 def sparse_rayleigh_quotient(A_sparse, x):
@@ -42,10 +33,7 @@ def sparse_rayleigh_quotient(A_sparse, x):
 
 def hde_spectral_drawing(G: Graph, p: int, m: int, tol=1e-8, max_iters=1000, D_orth=True, prints=False, test=False, test_gershgorin=False, use_gershgorin=False):
     X = hde.hde(G, m, D_orth=D_orth)
-
-
->>>>>> > c108cbacb9b15a5a1d78b13580ecc6b978cadcb9
-   if prints:
+    if prints:
         print("prints for matrix Xss! with X shape: ", np.shape(X))
         print(X)
         print("XT D X = ")
@@ -328,10 +316,10 @@ ticks_index = 4
 n_plot_params = 5
 
 
-def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D = None):
+def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D=None):
     n = B_sparse.shape[0]
     all_ones = np.ones(n) / np.sqrt(n)
-    U = np.zeros(shape= (n, n))
+    U = np.zeros(shape=(n, n))
     if D.all() == None:
         D = csr_matrix(np.eye(n))
     U[:, 0] = all_ones.copy()
@@ -350,11 +338,12 @@ def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D = None):
                     ul = U[:, l]
                     y -= np.dot(y, ul) / np.dot(ul, ul) * ul
             x = y / norm(y)
-            if stopping_criteria_pm(x, xprev, B_sparse, tol, i, mode= 0) < tol:
+            if stopping_criteria_pm(x, xprev, B_sparse, tol, i, mode=0) < tol:
                 break
         if i == max_iter - 1:
             print("Warning: convergence not reached!")
-            print("residual = ", stopping_criteria_pm(x, xprev, B_sparse, tol, i, mode= 0))
+            print("residual = ", stopping_criteria_pm(
+                x, xprev, B_sparse, tol, i, mode=0))
 
         xvecT = x[np.newaxis, :]
         xvec = x[:, np.newaxis]
@@ -363,24 +352,23 @@ def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D = None):
         U[:, k] = x
     return U[:, 1:]
 
-
     print(n)
     return 0
 
     return eigenvectors
 
 
-def rayleigh_iteration(A, p, tol = 1e-8, max_iter = 1000, D = None):
+def rayleigh_iteration(A, p, tol=1e-8, max_iter=1000, D=None):
     n = A.shape[0]
-    id_csr = identity(n, format= 'csr')
-    U = np.zeros(shape = (n, n))
+    id_csr = identity(n, format='csr')
+    U = np.zeros(shape=(n, n))
     for k in range(p):
         x = np.random.rand(n)
         x /= norm(x)
         x_prev = x
         x = np.zeros(n)
         iters = 0
-        residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode= 0)
+        residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode=0)
         while residual > tol and iters < max_iter:
             # Orthogonalize w.r.t. previous eigenvectors
             for l in range(k):
@@ -394,20 +382,18 @@ def rayleigh_iteration(A, p, tol = 1e-8, max_iter = 1000, D = None):
             y = lu.solve(x_prev)
             x = y / norm(y)
             iters += 1
-            residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode= 0)
+            residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode=0)
         U[:, k] = x
         # Deflate original matrix A
     return U
 
 
-
-
-
-def draw(G: Graph, p = 2, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3, 3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)], numbering = -1, reference = False):
+def draw(G: Graph, p=2, tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], numbering=-1, reference=False):
     # #Degree normalized eigenvectors
     if numbering != -1:
         G.set_num_name(G.name + "_" + str(numbering))
-    # U, times, B_sparse = degree_normalized_eigenvectors(G, p, tol = tol, max_iter = max_iter, matmul = True, mode = mode)
+    U, times, B_sparse = degree_normalized_eigenvectors(
+        G, p, tol=tol, max_iter=max_iter, matmul=True, mode=mode)
 
     # # Save file with eigenvalue information
     # filename = "files/" + G.num_name + "eigenvectors.csv"
@@ -430,7 +416,7 @@ def draw(G: Graph, p = 2, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_wi
     # Eigenvalues and eigenvectors with reference method
     filename = "files/" + G.num_name + "eigenvectors.csv"
     if reference:
-        eigenvalues, eigenvectors = eigs(B_sparse, k= p + 1, which='LM')
+        eigenvalues, eigenvectors = eigs(B_sparse, k=p + 1, which='LM')
         with open(filename, 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(eigenvalues[1:])
@@ -438,18 +424,21 @@ def draw(G: Graph, p = 2, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_wi
         x_coord = eigenvectors[:, 1]
         y_coord = eigenvectors[:, 2]
         plot_name = G.num_name + "_ref"
-        graph_plot(G, x_coord, y_coord, node_size= node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params, plot_name = plot_name)
+        graph_plot(G, x_coord, y_coord, node_size=node_size, figsize=figsize, dpi=dpi,
+                   add_labels=False, edge_width=edge_width, plot_params=plot_params, plot_name=plot_name)
 
-    # x_coord = U[:, 0]
-    # y_coord = U[:, 1]
-    # graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
-    # return 1
+    x_coord = U[:, 0]
+    y_coord = U[:, 1]
+    graph_plot(G, x_coord, y_coord, node_size=node_size, figsize=figsize,
+               dpi=dpi, add_labels=False, edge_width=edge_width, plot_params=plot_params)
+    return 1
 
 
 def draw_from_dict(main_args):
     draw(**{key: value for arg in main_args for key, value in main_args.items()})
 
-def draw_n(G: Graph, n: int, p = 2, tol = 1e-8, max_iter = 1000, node_size = 0.01, edge_width = 0.1, figsize = (3, 3), dpi = 200, mode = 0, plot_params = [False for _ in range(n_plot_params)], reference = False):
+
+def draw_n(G: Graph, n: int, p=2, tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], reference=False):
     saved_args = locals()
     main_args = {}
     for key in saved_args.keys():

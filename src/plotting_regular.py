@@ -20,31 +20,37 @@ plot_params[grid_index] = True
 
 G = regular_graph(6, 3)
 
-draw_n(G, 4, plot_params=plot_params)
+draw_n(G, 4, edge_width=1.5, node_size=15,  plot_params=plot_params)
 
 k = 5
 num_regulars = 1
+edge_width = 1
+node_size = 4
 G = regular_graph(10, k)
-draw_n(G, num_regulars, plot_params=plot_params)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size, plot_params=plot_params)
 
 G = regular_graph(20, k)
-draw_n(G, num_regulars, plot_params=plot_params)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size, plot_params=plot_params)
 
 G = regular_graph(100, k)
-draw_n(G, num_regulars, plot_params=plot_params)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size, plot_params=plot_params)
 
 G = regular_graph(200, k)
-draw_n(G, num_regulars, plot_params=plot_params)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size,  plot_params=plot_params)
 
 N_nodes = 100
-G = regular_graph(N_nodes, 5)
-draw_n(G, num_regulars, plot_params=plot_params)
+G = regular_graph(N_nodes, 8)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
 
-G = regular_graph(N_nodes, 10)
-draw_n(G, num_regulars, plot_params=plot_params)
+G = regular_graph(N_nodes, 16)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
 
-G = regular_graph(N_nodes, 15)
-draw_n(G, num_regulars, plot_params=plot_params)
+G = regular_graph(N_nodes, 32)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
 
-G = regular_graph(N_nodes, 20)
-draw_n(G, num_regulars, plot_params=plot_params)
+G = regular_graph(N_nodes, 64)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
