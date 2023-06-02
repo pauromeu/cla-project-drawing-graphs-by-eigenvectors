@@ -17,7 +17,7 @@ G.set_adj_matrix(A)
 The main function to be taken into account to draw graphs is the function ```draw_n``` from the ```spectral_drawing module```:
 
 ```
-draw_n(G: Graph, n: int, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], reference=False):
+draw_n(G: Graph, n: int, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)]):
 ```
 
 The different options and parameters of this function are explained in its dosctring, which we include here for completeness:
