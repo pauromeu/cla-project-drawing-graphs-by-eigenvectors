@@ -9,10 +9,10 @@ from barabasi_albert_graphs import barabasi_albert_graph
 
 # Plot parameters
 plot_params = [False for _ in range(n_plot_params)]
-plot_params[title_index] = False
-plot_params[label_index] = True
-plot_params[axis_index] = True
-plot_params[grid_index] = True
+# plot_params[title_index] = False
+# plot_params[label_index] = True
+# plot_params[axis_index] = True
+# plot_params[grid_index] = True
 
 
 def generate_basic_plots():
@@ -97,20 +97,20 @@ def generate_walshau_plots():
     graphs.append(G)
     print(G)
 
-    f = open(pwd + '/data/add20.txt')
-    G = Graph(f)
-    graphs.append(G)
-    print(G)
+#     f = open(pwd + '/data/add20.txt')
+#     G = Graph(f)
+#     graphs.append(G)
+#     print(G)
 
     f = open(pwd + '/data/uk.graph')
     G = Graph(f)
     graphs.append(G)
     print(G)
 
-    f = open(pwd + '/data/4elt.txt')
-    G = Graph(f)
-    graphs.append(G)
-    print(G)
+#     f = open(pwd + '/data/4elt.txt')
+#     G = Graph(f)
+#     graphs.append(G)
+#     print(G)
 
     for G in graphs:
         draw_n(G, 1, p=2, tol=1e-8, max_iter=1000,

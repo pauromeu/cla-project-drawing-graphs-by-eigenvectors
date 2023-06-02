@@ -198,7 +198,7 @@ def rayleigh_iteration(A, p, tol = 1e-8, max_iter = 1000, D = None, prints = Fal
         if k == 0: 
             sigma = 1.0
         else:
-            sigma -= 1e-4
+            sigma -= 0.0001
         sigma_prev = sigma
         iters = 0
         residual = stopping_criteria(x, x_prev, A, tol, iters, mode = 0)
