@@ -235,8 +235,27 @@ def rayleigh_iteration(A, p, tol = 1e-8, max_iter = 1000, D = None, prints = Fal
         U[:,k] = x
     return U
 
-def draw(G: Graph, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], numbering=-1, reference=False):
-    # #Degree normalized eigenvectors
+def draw(G: Graph, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], numbering=-1):
+    """
+    Draw a graph using eigenvectors and save the plot.
+
+    Parameters:
+        G (Graph): The input graph.
+        p (int): Number of eigenvectors to use for drawing. Default is 2.
+        method (str): Method to compute the drawing. Available options: "original", "rayleigh", "pm", "ref". Default is "rayleigh".
+        tol (float): Tolerance for convergence. Default is 1e-8.
+        max_iter (int): Maximum number of iterations. Default is 1000.
+        node_size (float): Size of the graph nodes in the plot. Default is 0.01.
+        edge_width (float): Width of the graph edges in the plot. Default is 0.1.
+        figsize (tuple): Figure size (width, height) in inches. Default is (3, 3).
+        dpi (int): Dots per inch for the figure. Default is 200.
+        mode (int): residual mode (0 - <x, x_prev>, 1 - norm(A x - rayleigh_quotient(A,x)x), 2 - norm(x - x_prev)). Default is 0. 
+        plot_params (list): List of plot parameters. See main for more information.
+        numbering (int): Numbering for the graph. Default is -1.
+
+    Returns:
+        True if the drawing was successful
+    """
     if numbering != -1:
         G.set_num_name(G.name + "_" + method + "_" + str(numbering))
         
@@ -264,13 +283,23 @@ def draw(G: Graph, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=
         eigenvalues, eigenvectors = eigs(B_sparse, k = p + 1, which='LM')
         U = eigenvectors[:,1:]
 
-    # Save file with eigenvalue information
+    # Save file with eigenvector information
     filename = "files/" + G.num_name + "eigenvectors.csv"
     with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["u^" + str(i + 2) for i in range(p)])
         for i in range(G.n_nodes):
             writer.writerow([U[i,j] for j in range(p)])
+            
+    # Save file with eigenvalue information
+    filename = "files/" + G.num_name + "eigenvalues.csv"
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["lambda_" + str(i + 2) for i in range(p)])
+        if method == "original":
+            writer.writerow([sparse_rayleigh_quotient(B_sparse, U[:,j]) for j in range(p)])
+        elif method == "ref":
+            writer.writerow([eigenvalues[j + 1] for j in range(p)])
         
     # Generate and save plot
     if method == "rayleigh" or method == "pm":
@@ -285,7 +314,7 @@ def draw(G: Graph, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=
 def draw_from_dict(main_args):
     draw(**{key: value for arg in main_args for key, value in main_args.items()})
 
-def draw_n(G: Graph, n: int, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], reference=False):
+def draw_n(G: Graph, n: int, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)]):
     saved_args = locals()
     main_args = {}
     for key in saved_args.keys():
