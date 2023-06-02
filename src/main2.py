@@ -13,20 +13,71 @@ plot_params[label_index] = True
 plot_params[axis_index] = True
 plot_params[grid_index] = True
 
+
 def generate_basic_plots():
     # Examples from the graph_collection module
     graphs = []
     G = cyclic_graph(5)
     graphs.append(G)
 
-    G = regular_graph(100,50)
+    G = regular_graph(100, 50)
     graphs.append(G)
 
-    G = bipartite(50,50)
+    G = bipartite(50, 50)
     graphs.append(G)
 
     for G in graphs:
-        draw_n(G, 1, method = "original", p = 2, tol = 1e-8, max_iter = 1000, plot_params = plot_params, mode = 0, reference = False)
+        draw_n(G, 1, method="original", p=2, tol=1e-8, max_iter=1000,
+               plot_params=plot_params, mode=0, reference=False)
+
+
+def generate_regular_plots():
+    # Examples of regular graphs presented in the report
+    plot_params = [False for _ in range(n_plot_params)]
+
+
+plot_params[title_index] = False
+plot_params[label_index] = True
+plot_params[axis_index] = True
+plot_params[grid_index] = True
+
+
+# G = regular_graph(6, 3)
+# draw_n(G, 4, edge_width=1.5, node_size=15,  plot_params=plot_params)
+
+k = 5
+num_regulars = 1
+edge_width = 1
+node_size = 4
+G = regular_graph(10, k)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size, plot_params=plot_params)
+
+G = regular_graph(20, k)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size, plot_params=plot_params)
+
+G = regular_graph(100, k)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size, plot_params=plot_params)
+
+G = regular_graph(200, k)
+draw_n(G, num_regulars, edge_width=edge_width,
+       node_size=node_size,  plot_params=plot_params)
+
+N_nodes = 100
+G = regular_graph(N_nodes, 8)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+
+G = regular_graph(N_nodes, 16)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+
+G = regular_graph(N_nodes, 32)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+
+G = regular_graph(N_nodes, 64)
+draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+
 
 def generate_walshau_plots():
     # Plots from Walshaw's collection
@@ -58,7 +109,9 @@ def generate_walshau_plots():
     print(G)
 
     for G in graphs:
-        draw_n(G, 1, p = 2, tol = 1e-8, max_iter = 1000, plot_params = plot_params, mode = 0, reference = False)
+        draw_n(G, 1, p=2, tol=1e-8, max_iter=1000,
+               plot_params=plot_params, mode=0, reference=False)
+
 
 def generate_sbm_plots():
     # SBM plots
@@ -76,8 +129,8 @@ def generate_sbm_plots():
     graphs.append(G)
 
     Ks = [1, 2, 4, 8, 16]
-    alphas = np.linspace(0.1, 0.99, num = 5)
-    lbdas = np.linspace(0.9, 0.99, num = 5)
+    alphas = np.linspace(0.1, 0.99, num=5)
+    lbdas = np.linspace(0.9, 0.99, num=5)
 
     # Increasing lbda
     for lbda in lbdas:
@@ -113,11 +166,12 @@ def generate_sbm_plots():
     graphs.append(G)
 
     for G in graphs:
-        U = draw_n(G, 1, p = 2, method = "original", tol = 1e-8, max_iter = 2000, plot_params = plot_params, mode = 0)
-        
+        U = draw_n(G, 1, p=2, method="original", tol=1e-8,
+                   max_iter=2000, plot_params=plot_params, mode=0)
+
 
 # Uncomment any of the following functions to generate the corresponding graph drawings
 # generate_basic_plots()
-generate_sbm_plots()
+# generate_sbm_plots()
 # generate_walshau_plots()
-
+generate_regular_plots()

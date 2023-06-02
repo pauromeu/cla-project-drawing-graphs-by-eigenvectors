@@ -18,9 +18,8 @@ plot_params[axis_index] = True
 plot_params[grid_index] = True
 
 
-G = regular_graph(6, 3)
-
-draw_n(G, 4, edge_width=1.5, node_size=15,  plot_params=plot_params)
+# G = regular_graph(6, 3)
+# draw_n(G, 4, edge_width=1.5, node_size=15,  plot_params=plot_params)
 
 k = 5
 num_regulars = 1
