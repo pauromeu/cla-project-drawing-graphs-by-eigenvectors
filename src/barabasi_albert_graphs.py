@@ -1,5 +1,4 @@
 import networkx as nx
-import matplotlib.pyplot as plt
 from graph_plot import *
 from graph_class import Graph
 from spectral_drawing import *
@@ -18,17 +17,3 @@ def barabasi_albert_graph(n, m, seed=None):
     G.set_laplacian()
 
     return G
-
-
-n = 100
-m = 2
-
-G = barabasi_albert_graph(n, m, seed=32)
-
-U, times = degree_normalized_eigenvectors(
-    np.diag(G.degs), G.laplacian, 2, tol=1e-6, max_iter=2000, matmul=False, prints=False)
-
-x_coord = U[:, 0]
-y_coord = U[:, 1]
-
-graph_plot(G.adj_matrix, x_coord, y_coord, add_labels=False)
