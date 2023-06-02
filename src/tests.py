@@ -62,3 +62,28 @@ print(G.adj_matrix)
 print(G.degs)
 print(G.laplacian)
 print(G.adj_list)
+
+# # Test hde matrix
+# pwd = "/Users/guifre/cla_project/cla-project-drawing-graphs-by-eigenvectors"
+# f = open(pwd + "/data/add20.txt", "r")
+# G = Graph(f)
+# m = 4
+# X = hde.hde(G, m)
+# B = hde_matrix(G.laplacian, X)
+# print(B)
+
+
+
+                    
+    
+    
+    
+
+# # Test case for Gershgorin bound
+# # Given matrix
+# matrix = np.array([[3, 1, 2, 4],
+#                    [0, 6, 2, 1],
+#                    [1, 0, 4, 2],
+#                    [2, 1, 0, 5]])
+
+# print(gershogorin_bound(matrix))

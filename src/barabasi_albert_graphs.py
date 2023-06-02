@@ -25,7 +25,6 @@ m = 2
 
 G = barabasi_albert_graph(n, m, seed=32)
 
-
 U, times = degree_normalized_eigenvectors(
     np.diag(G.degs), G.laplacian, 2, tol=1e-6, max_iter=2000, matmul=False, prints=False)
 

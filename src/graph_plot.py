@@ -71,11 +71,6 @@ def graph_plot(G, x_coord, y_coord, title="Graph", node_size=1, edge_width=0.1, 
         plt.plot([0, 0], [-cross_size, cross_size], color='grey',
                  linewidth=0.5, markersize=node_size)
 
-    # if add_labels:
-    #     # add labels to edges with weights from adjacency matrix
-    #     edge_labels = {(i, j): adj_matrix[i][j] for i, j in graph.edges()}
-    #     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_color='black')
-
     # set axis labels and title
     if plot_params[label_index]:
         plt.xlabel(r"$x$")

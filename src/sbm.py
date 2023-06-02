@@ -8,6 +8,7 @@ def sbm_adj_matrix(Theta, B, prints = False):
     for i in range(n_nodes):
         g.append(np.where(Theta[i,:] == 1)[0][0])
     g = np.array(g)
+    
     if prints: 
         print("node's communities: ", g)
         print("B:")
@@ -54,12 +55,5 @@ def example22(alpha, lbda, n_nodes,K, prints = False):
     return sbm_adj_matrix(Theta, B)
 
 
-# # Testing
-# ex22 = example22(1.0, 0.5, 5)
-# print(ex22)
-# G = gen_sbm_graph(1.0, 0.5, 5)
-# print(G.adj_matrix)
-# print(G.degs)
-# print(G.laplacian)
-# print(G.adj_list)
+
             

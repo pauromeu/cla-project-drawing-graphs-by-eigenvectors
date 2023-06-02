@@ -128,6 +128,58 @@ def bfs_shortest_path_distances(adj_list, start_node):
         np_distances.append(dist)
     np_distances = np.array(np_distances)
     return np_distances
+
+def gershgorin_bound(A, test=False):
+    m = len(A[:, 0])
+    vec = np.zeros(m)
+    for i in range(m):
+        vec[i] = A[i, i]
+        vec[i] += np.sum(np.abs(A[i, :]))
+        vec[i] -= np.abs(A[i, i])
+    mu = np.max(vec)
+    if test:
+        U = power_method(A, 1)
+        max_eigvalue = rayleigh_quotient(A, U[:, 0])
+        print("max eig. value with PM: ", max_eigvalue)
+        print("Gershgorin bound: ", mu)
+        assert (mu >= np.abs(max_eigvalue)
+                and "Gershgorin bound not bounding max. eig. value for A!")
+    return np.max(vec)
+
+def hde_matrix(L, X, use_sparse=True, use_gershgorin=False, test_gershgorin=False):
+    """Computes matrix from which the eigenvectors for the p-dimensional layout should be extracted.
+    In the reference [2] this matrix is just mu * In - X^T L X, where X represents the high-dimensional
+    embedding of the graph. mu in the previous expression should be a bound on max_i |lambda_i|, where 
+    lambda_i are the eigenvalues of X^T L X. This bound can be computed using the so-called Gershgorin
+    bound, or by using the power-method on X^T L X to get the dominant eigenvalue.
+
+    Args:
+        L: the laplacian of the graph
+        X: the matrix encoding the high-dimensional embedding
+        use_sparse (bool, optional): if True, exploits the sparsity of L to compute the product LX. Defaults to True.
+        use_gershgorin (bool, optional): if True, we set mu equal to the Gershgorin bound for X^T L X. Defaults to False.
+        test_gershgorin (bool, optional): if True, tests if the Gershgorin bound actually bounds the dominant eigenvector of X^T L X. Defaults to False.
+
+    Returns:
+        B: matrix mu * In - X^T L X
+    """
+    if use_sparse:
+        L_sparse = csr_matrix(L)
+        LX = L_sparse @ X
+    else:
+        LX = L @ X
+
+    XLX = X.T @ LX
+    m = len(X[0, :])
+    mu = 0
+    if use_gershgorin:
+        mu = gershgorin_bound(XLX, test=test_gershgorin)
+    else:
+        epsilon = 1e-6
+        V = power_method(XLX, 1)
+        mu = np.abs(rayleigh_quotient(XLX, V[:, 0])) * (1 + epsilon)
+    B = 0.5 * (np.eye(m) - XLX / mu)
+    return B
      
        
 # # Test shortest path distances

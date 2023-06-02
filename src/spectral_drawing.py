@@ -9,27 +9,17 @@ from scipy.stats import ortho_group
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigs
 from graph_class import Graph
-import hde as hde
+from hde import *
 import time as time
 from pm import *
 
-
-# Set the desired precision
-# mp.dps = 100
-
-
-def rayleigh_quotient(A, x):
-    return np.dot(x, A@x) / np.dot(x, x)
-
-
-def hde_spectral_drawing(G: Graph, p: int, m: int, tol=1e-8, max_iters=1000, D_orth=True, prints=False, test=False, test_gershgorin=False, use_gershgorin=False):
-    X = hde.hde(G, m, D_orth=D_orth)
-
-
-def sparse_rayleigh_quotient(A_sparse, x):
-    xT = x[np.newaxis, :]
-    return (xT @ A_sparse @ x) / np.dot(x, x)
-
+# Indices for plot params
+grid_index = 0
+axis_index = 1
+label_index = 2
+title_index = 3
+ticks_index = 4
+n_plot_params = 5
 
 def hde_spectral_drawing(G: Graph, p: int, m: int, tol=1e-8, max_iters=1000, D_orth=True, prints=False, test=False, test_gershgorin=False, use_gershgorin=False):
     X = hde.hde(G, m, D_orth=D_orth)
@@ -45,155 +35,6 @@ def hde_spectral_drawing(G: Graph, p: int, m: int, tol=1e-8, max_iters=1000, D_o
     if prints:
         print(U)
     return X@U, B, X
-
-
-def gershgorin_bound(A, test=False):
-    m = len(A[:, 0])
-    vec = np.zeros(m)
-    for i in range(m):
-        vec[i] = A[i, i]
-        vec[i] += np.sum(np.abs(A[i, :]))
-        vec[i] -= np.abs(A[i, i])
-    mu = np.max(vec)
-    if test:
-        U = power_method(A, 1)
-        max_eigvalue = rayleigh_quotient(A, U[:, 0])
-        print("max eig. value with PM: ", max_eigvalue)
-        print("Gershgorin bound: ", mu)
-        assert (mu >= np.abs(max_eigvalue)
-                and "Gershgorin bound not bounding max. eig. value for A!")
-    return np.max(vec)
-
-
-def test_power_method(A, U, p):
-    """ Tests power method results using SVD decomposition
-
-    Args:
-        A: matrix for which power method has been applied
-        U: results of power method
-        p: number of eigenvectors retrieved using power method
-    """
-    u, s, vt = np.linalg.svd(A)
-    print("Test results: ")
-    print("SVD decomposition of matrix A = ")
-    print(A)
-    print(":")
-    print("u = ", u)
-    print("s = ", s)
-    print("vt = ", vt)
-    print("First ", p, " dominant eigenvectors: ")
-    print(u[:, :p])
-    print("Power method results: ")
-    print(U)
-    print("Quotients power method / SVD: ")
-    for j in range(p):
-        print("Dominant eigenvalue ", j + 1)
-        print("PM results: ", rayleigh_quotient(A, U[:, j]))
-        print("SVD results  : ", rayleigh_quotient(A, u[:, j]))
-        if j != p - 1:
-            print("\n")
-
-
-def stopping_criteria_pm(x, xprev, A, tol, iters, mode=0):
-    """Computes residual for different stopping criteria for the power method
-    """
-    if iters != 0:
-        residual = 0
-        if mode == 0:
-            residual = 1. - np.dot(x, xprev)
-        elif mode == 1:  # computing the residual
-            residual = norm(A@x - rayleigh_quotient(A, x)*x)
-        elif mode == 2:
-            residual = norm(x - xprev)
-        return residual
-    else:
-        return 99999
-
-
-def power_method(A, p=2, tol=1e-8, max_iters=1000, prints=False, test=False, mode=0):
-    """ Basic implementation of power method to find the first p dominant eigenvectors of matrix A
-
-    Args:
-        A: matrix for which we want to compute the first p dominant eigenvectors
-        p (int, optional): Defaults to 2.
-        tol (_type_, optional): tolerance for the stopping criteria of the power method. Defaults to 1e-8.
-        max_iters (int, optional): maximum number of iterations. Defaults to 1000.
-        prints (bool, optional): if True provides useful prints for debugging. Defaults to False.
-        test (bool, optional): if True, tests immediately the results of the power method comparing with SVD results. Defaults to False.
-        mode: residual mode (see stopping_criteria_pm function for more info.). Defaults to 0.
-
-    Returns:
-        U: n x p matrix containing the first p dominant eigenvectors of matrix A
-    """
-    n = len(A[0, :])
-    U = np.zeros(shape=(n, p))
-    if prints:
-        print(U)
-    for k in range(p):
-        print("Computing dominant eigenvector ", k + 1, "...")
-        # Set initial
-        uk_t = np.random.normal(0, 1, n)
-        uk_t /= norm(uk_t)  # normalization
-        iters = 0
-        uk = np.zeros(n)
-        residual = stopping_criteria_pm(uk, uk_t, A, tol, iters, mode=mode)
-        while residual > tol and iters < max_iters:
-            uk = uk_t.copy()
-            # orthogonalize against previous eigenvectors
-            if k > 0:
-                for l in range(k):
-                    ul = U[:, l]
-                    uk = uk - np.dot(uk, ul) / (np.dot(ul, ul)) * ul
-            # multiply by A
-            uk_t = A@uk
-            # normalize
-            uk_t = uk_t / norm(uk_t)
-            iters += 1
-
-        # save eigenvector
-        U[:, k] = uk_t
-
-    if test:
-        test_power_method(A, U, p)
-
-    return U
-
-
-def hde_matrix(L, X, use_sparse=True, use_gershgorin=False, test_gershgorin=False):
-    """Computes matrix from which the eigenvectors for the p-dimensional layout should be extracted.
-    In the reference [2] this matrix is just mu * In - X^T L X, where X represents the high-dimensional
-    embedding of the graph. mu in the previous expression should be a bound on max_i |lambda_i|, where 
-    lambda_i are the eigenvalues of X^T L X. This bound can be computed using the so-called Gershgorin
-    bound, or by using the power-method on X^T L X to get the dominant eigenvalue.
-
-    Args:
-        L: the laplacian of the graph
-        X: the matrix encoding the high-dimensional embedding
-        use_sparse (bool, optional): if True, exploits the sparsity of L to compute the product LX. Defaults to True.
-        use_gershgorin (bool, optional): if True, we set mu equal to the Gershgorin bound for X^T L X. Defaults to False.
-        test_gershgorin (bool, optional): if True, tests if the Gershgorin bound actually bounds the dominant eigenvector of X^T L X. Defaults to False.
-
-    Returns:
-        B: matrix mu * In - X^T L X
-    """
-    if use_sparse:
-        L_sparse = csr_matrix(L)
-        LX = L_sparse @ X
-    else:
-        LX = L @ X
-
-    XLX = X.T @ LX
-    m = len(X[0, :])
-    mu = 0
-    if use_gershgorin:
-        mu = gershgorin_bound(XLX, test=test_gershgorin)
-    else:
-        epsilon = 1e-6
-        V = power_method(XLX, 1)
-        mu = np.abs(rayleigh_quotient(XLX, V[:, 0])) * (1 + epsilon)
-    B = 0.5 * (np.eye(m) - XLX / mu)
-    return B
-
 
 def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul=True, prints=False, mode=0):
     """
@@ -247,7 +88,7 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul=True, p
         uk = np.zeros(n)
         iter_count = 0
         iter_times = []
-        residual = stopping_criteria_pm(
+        residual = stopping_criteria(
             uk, uk_t, B, tol, iter_count, mode=mode)
         while residual >= tol and iter_count < max_iter:
             t_iter_0 = time.time()
@@ -282,7 +123,7 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul=True, p
             # uk_t = 0.5 * (uk + (A @ uk) * D_inv.diagonal()) # vectorized version
 
             uk_t = uk_t / norm(uk_t)  # normalization
-            residual = stopping_criteria_pm(
+            residual = stopping_criteria(
                 uk, uk_t, B, tol, iter_count, mode=mode)
             iter_count += 1
             t_iter_1 = time.time()
@@ -307,15 +148,6 @@ def degree_normalized_eigenvectors(G, p, tol=1e-6, max_iter=2000, matmul=True, p
 
     return U[:, 1:], times, B_sparse
 
-
-grid_index = 0
-axis_index = 1
-label_index = 2
-title_index = 3
-ticks_index = 4
-n_plot_params = 5
-
-
 def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D=None):
     n = B_sparse.shape[0]
     all_ones = np.ones(n) / np.sqrt(n)
@@ -338,11 +170,11 @@ def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D=None):
                     ul = U[:, l]
                     y -= np.dot(y, ul) / np.dot(ul, ul) * ul
             x = y / norm(y)
-            if stopping_criteria_pm(x, xprev, B_sparse, tol, i, mode=0) < tol:
+            if stopping_criteria(x, xprev, B_sparse, tol, i, mode=0) < tol:
                 break
         if i == max_iter - 1:
             print("Warning: convergence not reached!")
-            print("residual = ", stopping_criteria_pm(
+            print("residual = ", stopping_criteria(
                 x, xprev, B_sparse, tol, i, mode=0))
 
         xvecT = x[np.newaxis, :]
@@ -350,18 +182,14 @@ def power_method_sparse(B_sparse, p, max_iter=1000, tol=1e-6, D=None):
         mu = sparse_rayleigh_quotient(B_sparse, x)
         B_sparse -= csr_matrix(mu * (xvec @ xvecT))
         U[:, k] = x
-    return U[:, 1:]
-
-    print(n)
-    return 0
-
-    return eigenvectors
+    return U
 
 
-def rayleigh_iteration(A, p, tol=1e-8, max_iter=1000, D=None):
+def rayleigh_iteration(A, p, tol = 1e-8, max_iter = 1000, D = None, prints = False):
     n = A.shape[0]
-    id_csr = identity(n, format='csr')
-    U = np.zeros(shape=(n, n))
+    id_csr = identity(n, format = 'csr')
+    D = id_csr
+    U = np.zeros(shape = (n,n))
     for k in range(p):
         print("Computing eigenvector ", k + 1)
         x = np.random.rand(n)
@@ -370,21 +198,20 @@ def rayleigh_iteration(A, p, tol=1e-8, max_iter=1000, D=None):
         if k == 0: 
             sigma = 1.0
         else:
-            sigma -= 1e-9
+            sigma -= 1e-4
         sigma_prev = sigma
         iters = 0
-        residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode=0)
+        residual = stopping_criteria(x, x_prev, A, tol, iters, mode = 0)
         while residual > tol and iters < max_iter:
             x_prev = x
             sigma_prev = sigma
             # Orthogonalize w.r.t. previous eigenvectors
             for l in range(k):
-                ul = U[:, l]
-                D_ul = np.diagonal(D)*ul
-                x -= np.dot(x, D_ul) / np.dot(ul, D_ul) * ul
-
-            sigma = np.dot(x_prev, A@x_prev)
-            shift = A - id_csr
+                ul = U[:,l]
+                D_ul = ul.copy()
+                x = x - (np.dot(x,D_ul) / np.dot(ul, D_ul)) * ul
+                
+            shift = A - sigma_prev * id_csr
             lu = splu(shift)
             y = lu.solve(x_prev)
             x = y / norm(y)
@@ -394,76 +221,71 @@ def rayleigh_iteration(A, p, tol=1e-8, max_iter=1000, D=None):
                 ul = U[:,l]
                 D_ul = ul.copy()
                 x = x - (np.dot(x,D_ul) / np.dot(ul, D_ul)) * ul
-                
-            # print("After orthogonalization 2")
-            # print(x)
-            # print(np.dot(x,U[:,0]))
+            
             iters += 1
-            residual = stopping_criteria_pm(x, x_prev, A, tol, iters, mode = 0)
-            # residual = np.abs(sigma - sigma_prev)
-            # if iters <= 100:
-            #     print("Iteration ", iters, " for eigenvector ", k + 1, " | residual = ", residual, " sigma = ", sigma)
-            #     print("Scalar products")
-            #     print(U[:,0])
-            #     print(x)
-            #     print(np.dot(x,U[:,0]))
+            residual = stopping_criteria(x, x_prev, A, tol, iters, mode = 0)
+            
+            if prints:
+                if iters <= 100:
+                    print("Iteration ", iters, " for eigenvector ", k + 1, " | residual = ", residual, " sigma = ", sigma)
+                    print("Scalar products")
+                    print(U[:,0])
+                    print(x)
+                    print(np.dot(x,U[:,0]))
         U[:,k] = x
-        # Deflate original matrix A
     return U
 
-
-def draw(G: Graph, p=2, tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], numbering=-1, reference=False):
+def draw(G: Graph, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], numbering=-1, reference=False):
     # #Degree normalized eigenvectors
     if numbering != -1:
-        G.set_num_name(G.name + "_" + str(numbering))
-    U, times, B_sparse = degree_normalized_eigenvectors(
-        G, p, tol=tol, max_iter=max_iter, matmul=True, mode=mode)
-
-    # # Save file with eigenvalue information
-    # filename = "files/" + G.num_name + "eigenvectors.csv"
-    # with open(filename, 'w', newline='') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerow(["u^" + str(i + 2) for i in range(p)])
-    #     for i in range(G.n_nodes):
-    #         writer.writerow([U[i,j] for j in range(p)])
-    D_inv_A_sparse = csr_matrix(
+        G.set_num_name(G.name + "_" + method + "_" + str(numbering))
+        
+    # Select method with which we compute the drawing
+    if method == "original":
+        U, times, B_sparse = degree_normalized_eigenvectors(
+            G, p, tol=tol, max_iter=max_iter, matmul=True, mode=mode)
+    elif method == "rayleigh":
+        # Construct B sparse matrix to compute eigenvectors with reference method
+        D_inv_A_sparse = csr_matrix(
         np.diag(np.ones(G.n_nodes) / G.degs) @ G.adj_matrix)
-    B_sparse = 0.5 * (csr_matrix(np.eye(G.n_nodes)) + D_inv_A_sparse)
-    # U = power_method_sparse(B_sparse, p, tol = tol, max_iter = max_iter, D = np.diag(G.degs))
-    # approximate_eigenvalues = np.array([sparse_rayleigh_quotient(B_sparse, U[:, i]) for i in range(p)])
-    # filename = "files/" + G.num_name + "eigenvalues.csv"
-    # with open(filename, 'w', newline='') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerow(["lambda_" + str(i + 2) for i in range(p)])
-    #     writer.writerow(approximate_eigenvalues)
-    
-    U = rayleigh_iteration(B_sparse, p + 1, tol = tol, max_iter = max_iter)
-        
-    # Eigenvalues and eigenvectors with reference method
-    filename = "files/" + G.num_name + "eigenvectors.csv"
-    if reference:
-        eigenvalues, eigenvectors = eigs(B_sparse, k=p + 1, which='LM')
-        with open(filename, 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(eigenvalues[1:])
+        B_sparse = 0.5 * (csr_matrix(np.eye(G.n_nodes)) + D_inv_A_sparse)
+        U = rayleigh_iteration(B_sparse, p + 1, tol = tol, max_iter = max_iter)
+    elif method == "pm":
+        # Construct B sparse matrix to compute eigenvectors with reference method
+        D_inv_A_sparse = csr_matrix(
+        np.diag(np.ones(G.n_nodes) / G.degs) @ G.adj_matrix)
+        B_sparse = 0.5 * (csr_matrix(np.eye(G.n_nodes)) + D_inv_A_sparse)
+        U = power_method_sparse(B_sparse, p, tol = tol, max_iter = max_iter, D = np.diag(G.degs))
+    elif method == "ref":
+        # Construct B sparse matrix to compute eigenvectors with reference method
+        D_inv_A_sparse = csr_matrix(
+        np.diag(np.ones(G.n_nodes) / G.degs) @ G.adj_matrix)
+        B_sparse = 0.5 * (csr_matrix(np.eye(G.n_nodes)) + D_inv_A_sparse)
+        eigenvalues, eigenvectors = eigs(B_sparse, k = p + 1, which='LM')
+        U = eigenvectors[:,1:]
 
-        x_coord = eigenvectors[:, 1]
-        y_coord = eigenvectors[:, 2]
-        plot_name = G.num_name + "_ref"
-        graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params, plot_name = plot_name)
+    # Save file with eigenvalue information
+    filename = "files/" + G.num_name + "eigenvectors.csv"
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["u^" + str(i + 2) for i in range(p)])
+        for i in range(G.n_nodes):
+            writer.writerow([U[i,j] for j in range(p)])
         
-    
-    x_coord = U[:, 1]
-    y_coord = U[:, 2]
+    # Generate and save plot
+    if method == "rayleigh" or method == "pm":
+        x_coord = U[:, 1]
+        y_coord = U[:, 2]
+    else:    
+        x_coord = U[:, 0]
+        y_coord = U[:, 1]
     graph_plot(G, x_coord, y_coord, node_size = node_size, figsize = figsize, dpi = dpi, add_labels= False, edge_width = edge_width, plot_params = plot_params)
     return 1
     
-
 def draw_from_dict(main_args):
     draw(**{key: value for arg in main_args for key, value in main_args.items()})
 
-
-def draw_n(G: Graph, n: int, p=2, tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], reference=False):
+def draw_n(G: Graph, n: int, p=2, method = "rayleigh", tol=1e-8, max_iter=1000, node_size=0.01, edge_width=0.1, figsize=(3, 3), dpi=200, mode=0, plot_params=[False for _ in range(n_plot_params)], reference=False):
     saved_args = locals()
     main_args = {}
     for key in saved_args.keys():

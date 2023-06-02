@@ -8,6 +8,10 @@ def rayleigh_quotient(A, x):
     """
     return np.dot(x,A@x) / np.dot(x,x)
 
+def sparse_rayleigh_quotient(A_sparse, x):
+    xT = x[np.newaxis, :]
+    return (xT @ A_sparse @ x) / np.dot(x, x)
+
 def test_power_method(A, U, p):
     """ Tests power method results using SVD decomposition
 
@@ -36,15 +40,18 @@ def test_power_method(A, U, p):
         if j != p - 1: print("\n")
 
 
-def stopping_criteria_pm(x, xprev, A, tol, iters, mode = 0):
+
+def stopping_criteria(x, xprev, A, tol, iters, mode=0):
     """Computes residual for different stopping criteria for the power method
     """
     if iters != 0:
         residual = 0
         if mode == 0:
             residual = 1. - np.dot(x, xprev)
-        elif mode == 1: # computing the residual
-            residual = norm(A@x - rayleigh_quotient(A,x)*x)
+        elif mode == 1:  # computing the residual
+            residual = norm(A@x - rayleigh_quotient(A, x)*x)
+        elif mode == 2:
+            residual = norm(x - xprev)
         return residual
     else:
         return 99999
@@ -74,7 +81,7 @@ def power_method(A, p = 2, tol = 1e-8, max_iters = 1000, prints = False, test = 
         uk_t /= norm(uk_t)  # normalization
         iters = 0
         uk = np.zeros(n)
-        residual = stopping_criteria_pm(uk, uk_t, A, tol, iters, mode = mode)
+        residual = stopping_criteria(uk, uk_t, A, tol, iters, mode = mode)
         while residual > tol and iters < max_iters:
             uk = uk_t.copy()
             # orthogonalize against previous eigenvectors
