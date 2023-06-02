@@ -5,6 +5,7 @@ from graph_collection import *
 import os
 from sbm import gen_sbm_graph
 from load_sbm_array import *
+from barabasi_albert_graphs import barabasi_albert_graph
 
 # Plot parameters
 plot_params = [False for _ in range(n_plot_params)]
@@ -42,8 +43,9 @@ plot_params[axis_index] = True
 plot_params[grid_index] = True
 
 
-# G = regular_graph(6, 3)
-# draw_n(G, 4, edge_width=1.5, node_size=15,  plot_params=plot_params)
+G = regular_graph(6, 3)
+draw_n(G, 4, edge_width=1.5, node_size=15,
+       plot_params=plot_params, method='original')
 
 k = 5
 num_regulars = 1
@@ -51,32 +53,36 @@ edge_width = 1
 node_size = 4
 G = regular_graph(10, k)
 draw_n(G, num_regulars, edge_width=edge_width,
-       node_size=node_size, plot_params=plot_params)
+       node_size=node_size, plot_params=plot_params, method='original')
 
 G = regular_graph(20, k)
 draw_n(G, num_regulars, edge_width=edge_width,
-       node_size=node_size, plot_params=plot_params)
+       node_size=node_size, plot_params=plot_params, method='original')
 
 G = regular_graph(100, k)
 draw_n(G, num_regulars, edge_width=edge_width,
-       node_size=node_size, plot_params=plot_params)
+       node_size=node_size, plot_params=plot_params, method='original')
 
 G = regular_graph(200, k)
 draw_n(G, num_regulars, edge_width=edge_width,
-       node_size=node_size,  plot_params=plot_params)
+       node_size=node_size,  plot_params=plot_params, method='original')
 
 N_nodes = 100
 G = regular_graph(N_nodes, 8)
-draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+draw_n(G, num_regulars, node_size=node_size,
+       plot_params=plot_params, method='original')
 
 G = regular_graph(N_nodes, 16)
-draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+draw_n(G, num_regulars, node_size=node_size,
+       plot_params=plot_params, method='original')
 
 G = regular_graph(N_nodes, 32)
-draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+draw_n(G, num_regulars, node_size=node_size,
+       plot_params=plot_params, method='original')
 
 G = regular_graph(N_nodes, 64)
-draw_n(G, num_regulars, node_size=node_size, plot_params=plot_params)
+draw_n(G, num_regulars, node_size=node_size,
+       plot_params=plot_params, method='original')
 
 
 def generate_walshau_plots():
@@ -111,6 +117,17 @@ def generate_walshau_plots():
     for G in graphs:
         draw_n(G, 1, p=2, tol=1e-8, max_iter=1000,
                plot_params=plot_params, mode=0, reference=False)
+
+
+def generate_barabasi_albert_plot():
+    # Example of barabasi-albert graph plot
+    # Change these values as desired
+    n = 1000  # Number of nodes
+    m = 3  # Degree of each node
+    G = barabasi_albert_graph(n, m)
+    G.set_name('barabasi_albert_example')
+
+    draw_n(G, 1, method='original')
 
 
 def generate_sbm_plots():
@@ -172,6 +189,7 @@ def generate_sbm_plots():
 
 # Uncomment any of the following functions to generate the corresponding graph drawings
 # generate_basic_plots()
-# generate_sbm_plots()
-# generate_walshau_plots()
 generate_regular_plots()
+# generate_sbm_plots()
+# generate_barabasi_albert_plot()
+# generate_walshau_plots()
