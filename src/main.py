@@ -29,23 +29,21 @@ def generate_basic_plots():
 
     for G in graphs:
         draw_n(G, 1, method="original", p=2, tol=1e-8, max_iter=1000,
-               plot_params=plot_params, mode=0, reference=False)
+               plot_params=plot_params, mode=0)
 
 
 def generate_regular_plots():
     # Examples of regular graphs presented in the report
     plot_params = [False for _ in range(n_plot_params)]
 
-
     plot_params[title_index] = False
     plot_params[label_index] = True
     plot_params[axis_index] = True
     plot_params[grid_index] = True
 
-
     G = regular_graph(6, 3)
     draw_n(G, 4, edge_width=1.5, node_size=15,
-        plot_params=plot_params, method='original')
+           plot_params=plot_params, method='original')
 
     k = 5
     num_regulars = 1
@@ -53,36 +51,36 @@ def generate_regular_plots():
     node_size = 4
     G = regular_graph(10, k)
     draw_n(G, num_regulars, edge_width=edge_width,
-        node_size=node_size, plot_params=plot_params, method='original')
+           node_size=node_size, plot_params=plot_params, method='original')
 
     G = regular_graph(20, k)
     draw_n(G, num_regulars, edge_width=edge_width,
-        node_size=node_size, plot_params=plot_params, method='original')
+           node_size=node_size, plot_params=plot_params, method='original')
 
     G = regular_graph(100, k)
     draw_n(G, num_regulars, edge_width=edge_width,
-        node_size=node_size, plot_params=plot_params, method='original')
+           node_size=node_size, plot_params=plot_params, method='original')
 
     G = regular_graph(200, k)
     draw_n(G, num_regulars, edge_width=edge_width,
-        node_size=node_size,  plot_params=plot_params, method='original')
+           node_size=node_size,  plot_params=plot_params, method='original')
 
     N_nodes = 100
     G = regular_graph(N_nodes, 8)
     draw_n(G, num_regulars, node_size=node_size,
-        plot_params=plot_params, method='original')
+           plot_params=plot_params, method='original')
 
     G = regular_graph(N_nodes, 16)
     draw_n(G, num_regulars, node_size=node_size,
-        plot_params=plot_params, method='original')
+           plot_params=plot_params, method='original')
 
     G = regular_graph(N_nodes, 32)
     draw_n(G, num_regulars, node_size=node_size,
-        plot_params=plot_params, method='original')
+           plot_params=plot_params, method='original')
 
     G = regular_graph(N_nodes, 64)
     draw_n(G, num_regulars, node_size=node_size,
-        plot_params=plot_params, method='original')
+           plot_params=plot_params, method='original')
 
 
 def generate_walshau_plots():
@@ -109,14 +107,14 @@ def generate_walshau_plots():
     graphs.append(G)
     print(G)
 
-    f = open(pwd + '/data/4elt.graph')
+    f = open(pwd + '/data/4elt.txt')
     G = Graph(f)
     graphs.append(G)
     print(G)
 
     for G in graphs:
         draw_n(G, 1, p=2, tol=1e-8, max_iter=1000,
-               plot_params=plot_params, mode=0, reference=False)
+               plot_params=plot_params, mode=0)
 
 
 def generate_barabasi_albert_plot():
@@ -189,9 +187,7 @@ def generate_sbm_plots():
 
 # Uncomment any of the following functions to generate the corresponding graph drawings
 # generate_basic_plots()
-generate_regular_plots()
+# generate_regular_plots()
 # generate_sbm_plots()
 # generate_barabasi_albert_plot()
 # generate_walshau_plots()
-
-
